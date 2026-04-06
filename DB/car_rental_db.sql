@@ -1,192 +1,117 @@
--- MySQL dump 10.13  Distrib 8.0.19, for Win64 (x86_64)
---
--- Host: localhost    Database: car_rental_db
--- ------------------------------------------------------
--- Server version	8.0.43
+-- 1. جدول المستخدمين (يشمل الـ Admin, Owner, Renter)
+CREATE TABLE Users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'owner', 'renter') NOT NULL,
+    account_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    driver_license_url VARCHAR(255), -- مخصص للمستأجر فقط
+    is_license_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+-- 2. جدول السيارات
+CREATE TABLE Cars (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    owner_id INT NOT NULL, -- FK يربط السيارة بمالكها
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    car_type VARCHAR(50),
+    brand VARCHAR(50),
+    model VARCHAR(50),
+    year INT,
+    transmission ENUM('automatic', 'manual'),
+    location VARCHAR(100),
+    rental_price DECIMAL(10, 2),
+    post_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    FOREIGN KEY (owner_id) REFERENCES Users(id) ON DELETE CASCADE
+);
 
---
--- Table structure for table `bookings`
---
+-- 3. جدول الحجوزات (الذي يربط المستأجر بالسيارة)
+CREATE TABLE Bookings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    car_id INT NOT NULL, -- FK يربط الحجز بالسيارة
+    renter_id INT NOT NULL, -- FK يربط الحجز بالمستأجر
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    total_price DECIMAL(10, 2),
+    status ENUM('pending', 'accepted', 'rejected', 'completed') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (car_id) REFERENCES Cars(id) ON DELETE RESTRICT, -- لمنع حذف سيارة محجوزة
+    FOREIGN KEY (renter_id) REFERENCES Users(id) ON DELETE CASCADE
+);
 
-DROP TABLE IF EXISTS `bookings`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `bookings` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `car_id` int NOT NULL,
-  `renter_id` int NOT NULL,
-  `start_date` date NOT NULL,
-  `end_date` date NOT NULL,
-  `total_price` decimal(10,2) DEFAULT NULL,
-  `status` enum('pending','accepted','rejected','completed') DEFAULT 'pending',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `car_id` (`car_id`),
-  KEY `renter_id` (`renter_id`),
-  CONSTRAINT `bookings_ibfk_1` FOREIGN KEY (`car_id`) REFERENCES `cars` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `bookings_ibfk_2` FOREIGN KEY (`renter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- 4. جدول التقييمات
+CREATE TABLE Reviews (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    booking_id INT NOT NULL, -- FK يربط التقييم برحلة معينة
+    car_id INT NOT NULL,
+    renter_id INT NOT NULL,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    FOREIGN KEY (booking_id) REFERENCES Bookings(id) ON DELETE CASCADE,
+    FOREIGN KEY (car_id) REFERENCES Cars(id) ON DELETE CASCADE,
+    FOREIGN KEY (renter_id) REFERENCES Users(id) ON DELETE CASCADE
+);
 
---
--- Dumping data for table `bookings`
---
 
-LOCK TABLES `bookings` WRITE;
-/*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
-/*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE Notifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL, -- الشخص المستلم للإشعار
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
 
---
--- Table structure for table `cars`
---
+CREATE TABLE Car_Images (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    car_id INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL, -- لينك الصورة (زي Firebase أو Local Path)
+    is_main BOOLEAN DEFAULT FALSE, -- عشان تحدد مين الصورة اللي تظهر في البحث (Cover)
+    FOREIGN KEY (car_id) REFERENCES Cars(id) ON DELETE CASCADE
+);
 
-DROP TABLE IF EXISTS `cars`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cars` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `owner_id` int NOT NULL,
-  `title` varchar(200) NOT NULL,
-  `description` text,
-  `car_type` varchar(50) DEFAULT NULL,
-  `brand` varchar(50) DEFAULT NULL,
-  `model` varchar(50) DEFAULT NULL,
-  `year` int DEFAULT NULL,
-  `transmission` enum('automatic','manual') DEFAULT NULL,
-  `location` varchar(100) DEFAULT NULL,
-  `rental_price` decimal(10,2) DEFAULT NULL,
-  `post_status` enum('pending','approved','rejected') DEFAULT 'pending',
-  PRIMARY KEY (`id`),
-  KEY `owner_id` (`owner_id`),
-  CONSTRAINT `cars_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `cars`
---
 
-LOCK TABLES `cars` WRITE;
-/*!40000 ALTER TABLE `cars` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cars` ENABLE KEYS */;
-UNLOCK TABLES;
+-- 1. إضافة مستخدم (Owner) عشان يملك العربيات دي
+INSERT INTO Users (name, email, password, role, account_status) 
+VALUES ('Car Provider Co.', 'provider@cars.com', '123456', 'owner', 'approved');
 
---
--- Table structure for table `notifications`
---
+INSERT INTO Cars 
+(owner_id, title, description, car_type, brand, model, year, transmission, location, rental_price, post_status) 
+VALUES
+(1, 'Luxury Tesla Experience', 'Experience the future with this fully electric Tesla Model 3. Autopilot enabled and premium interior.', 'Sedan', 'Tesla', 'Model 3', 2023, 'automatic', 'Cairo', 2500.00, 'approved'),
 
-DROP TABLE IF EXISTS `notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notifications` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `message` text NOT NULL,
-  `is_read` tinyint(1) DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+(1, 'Fast & Furious BMW', 'A high-performance M4 for those who love speed and luxury. Perfect for special events.', 'Sports', 'BMW', 'M4', 2022, 'automatic', 'Alexandria', 3500.00, 'approved'),
 
---
--- Dumping data for table `notifications`
---
+(1, 'Reliable Toyota Corolla', 'The most reliable car for city trips. Very fuel-efficient and comfortable for small families.', 'Sedan', 'Toyota', 'Corolla', 2021, 'automatic', 'Giza', 800.00, 'approved'),
 
-LOCK TABLES `notifications` WRITE;
-/*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
-UNLOCK TABLES;
+(1, 'Sporty Mercedes Benz', 'The C200 combines elegance with a sporty feel. Latest technology and very smooth driving.', 'Sedan', 'Mercedes', 'C200', 2023, 'automatic', 'Sheikh Zayed', 4000.00, 'approved'),
 
---
--- Table structure for table `reviews`
---
+(1, 'Economy Hyundai Elantra', 'Affordable and modern. Great for daily commuting inside Cairo.', 'Sedan', 'Hyundai', 'Elantra', 2022, 'automatic', 'Cairo', 700.00, 'approved'),
 
-DROP TABLE IF EXISTS `reviews`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `reviews` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `booking_id` int NOT NULL,
-  `car_id` int NOT NULL,
-  `renter_id` int NOT NULL,
-  `rating` int DEFAULT NULL,
-  `comment` text,
-  PRIMARY KEY (`id`),
-  KEY `booking_id` (`booking_id`),
-  KEY `car_id` (`car_id`),
-  KEY `renter_id` (`renter_id`),
-  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`car_id`) REFERENCES `cars` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `reviews_ibfk_3` FOREIGN KEY (`renter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `reviews_chk_1` CHECK ((`rating` between 1 and 5))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+(1, 'Classic Jeep Wrangler', 'Ready for adventure? This Wrangler is perfect for off-roading and desert trips in Dahab.', 'SUV', 'Jeep', 'Wrangler', 2020, 'manual', 'Dahab', 1500.00, 'approved'),
 
---
--- Dumping data for table `reviews`
---
+(1, 'Powerful Ford Mustang', 'Feel the muscle. A powerful engine and iconic design for an unforgettable ride.', 'Sports', 'Ford', 'Mustang', 2021, 'automatic', 'New Cairo', 3000.00, 'approved'),
 
-LOCK TABLES `reviews` WRITE;
-/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
-UNLOCK TABLES;
+(1, 'Family Kia Sportage', 'Spacious SUV, perfect for family road trips. High safety rating and large trunk.', 'SUV', 'Kia', 'Sportage', 2023, 'automatic', 'Mansoura', 1200.00, 'approved'),
 
---
--- Table structure for table `users`
---
+(1, 'Elegant Audi A4', 'German engineering at its best. Sophisticated design and powerful performance.', 'Sedan', 'Audi', 'A4', 2022, 'automatic', 'Cairo', 2200.00, 'approved'),
 
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `email` varchar(150) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` enum('admin','owner','renter') NOT NULL,
-  `account_status` enum('pending','approved','rejected') DEFAULT 'pending',
-  `driver_license_url` varchar(255) DEFAULT NULL,
-  `is_license_verified` tinyint(1) DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+(1, 'Practical Nissan Sunny', 'Simple, practical, and gets the job done. The best budget option in Giza.', 'Sedan', 'Nissan', 'Sunny', 2021, 'manual', 'Giza', 500.00, 'approved');
 
---
--- Dumping data for table `users`
---
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Dumping routines for database 'car_rental_db'
---
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-04-04 22:08:34
+INSERT INTO car_images (car_id, image_url, is_main) VALUES
+(22, 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=1000', 1), -- Tesla
+(23, 'https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=1000', 1), -- BMW
+(24, 'https://images.unsplash.com/photo-1623860841270-2a628c6fc9cc?q=80&w=1000', 1), -- Toyota
+(25, 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=1000', 1), -- Mercedes
+(26, 'https://images.unsplash.com/photo-1601362840469-51e4d8d59085?q=80&w=1000', 1), -- Hyundai
+(27, 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000', 1), -- Jeep
+(28, 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?q=80&w=1000', 1), -- Ford
+(29, 'https://images.unsplash.com/photo-1632243209675-01f11c752697?q=80&w=1000', 1), -- Kia
+(30, 'https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?q=80&w=1000', 1), -- Audi
+(31, 'https://images.unsplash.com/photo-1609520475181-039765b63428?q=80&w=1000', 1); -- Nissan
