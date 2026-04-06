@@ -79,6 +79,7 @@ CREATE TABLE Car_Images (
 INSERT INTO Users (name, email, password, role, account_status) 
 VALUES ('Car Provider Co.', 'provider@cars.com', '123456', 'owner', 'approved');
 
+<<<<<<< HEAD
 INSERT INTO Cars 
 (owner_id, title, description, car_type, brand, model, year, transmission, location, rental_price, post_status) 
 VALUES
@@ -115,3 +116,33 @@ INSERT INTO car_images (car_id, image_url, is_main) VALUES
 (29, 'https://images.unsplash.com/photo-1632243209675-01f11c752697?q=80&w=1000', 1), -- Kia
 (30, 'https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?q=80&w=1000', 1), -- Audi
 (31, 'https://images.unsplash.com/photo-1609520475181-039765b63428?q=80&w=1000', 1); -- Nissan
+=======
+-- 2. إضافة 10 عربيات (برجاء التأكد أن الـ owner_id هو 1 أو حسب اللي طلع من الخطوة اللي فوق)
+INSERT INTO Cars (owner_id, title, brand, model, year, transmission, location, rental_price, post_status) VALUES
+(1, 'Luxury Tesla Experience', 'Tesla', 'Model 3', 2023, 'automatic', 'Cairo', 2500.00, 'approved'),
+(1, 'Fast & Furious BMW', 'BMW', 'M4', 2022, 'automatic', 'Alexandria', 3500.00, 'approved'),
+(1, 'Reliable Toyota Corolla', 'Toyota', 'Corolla', 2021, 'automatic', 'Giza', 800.00, 'approved'),
+(1, 'Sporty Mercedes Benz', 'Mercedes', 'C200', 2023, 'automatic', 'Sheikh Zayed', 4000.00, 'approved'),
+(1, 'Economy Hyundai Elantra', 'Hyundai', 'Elantra', 2022, 'automatic', 'Cairo', 700.00, 'approved'),
+(1, 'Classic Jeep Wrangler', 'Jeep', 'Wrangler', 2020, 'manual', 'Dahab', 1500.00, 'approved'),
+(1, 'Powerful Ford Mustang', 'Ford', 'Mustang', 2021, 'automatic', 'New Cairo', 3000.00, 'approved'),
+(1, 'Family Kia Sportage', 'Kia', 'Sportage', 2023, 'automatic', 'Mansoura', 1200.00, 'approved'),
+(1, 'Elegant Audi A4', 'Audi', 'A4', 2022, 'automatic', 'Cairo', 2200.00, 'approved'),
+(1, 'Practical Nissan Sunny', 'Nissan', 'Sunny', 2021, 'manual', 'Giza', 500.00, 'approved');
+
+-- 3. إضافة الصور (صورة لكل عربية)
+INSERT INTO Car_Images (car_id, image_url, is_main) VALUES
+(1, 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=500', 1),
+(2, 'https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=500', 1),
+(3, 'https://images.unsplash.com/photo-1623859627214-8938bc2100bc?q=80&w=500', 1),
+(4, 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=500', 1),
+(5, 'https://images.unsplash.com/photo-1616788494707-ec28f08d05a1?q=80&w=500', 1),
+(6, 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=500', 1),
+(7, 'https://images.unsplash.com/photo-1584345604480-83475f916908?q=80&w=500', 1),
+(8, 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?q=80&w=500', 1),
+(9, 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?q=80&w=500', 1),
+(10, 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?q=80&w=500', 1);
+
+
+
+84cc3f0809060dbe1e4f005f0a5533486fbfc998
