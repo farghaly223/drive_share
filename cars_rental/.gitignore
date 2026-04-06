@@ -1,0 +1,22 @@
+
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docuser
+
+
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio 2015/2017/2019 cache and settings
+.vs/
+
+
+.vscode/
+appsettings.Development.json
+dist/
+node_modules/
+
+.DS_Store
+thumbs.db

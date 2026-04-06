@@ -1,39 +1,108 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using cars_rental.Models; // تأكد إن ده اسم الـ namespace بتاع الـ Context عندك
 using cars_rental.Models;
+using cars_rental.DTOs;
 
-[Route("api/[controller]")]
-[ApiController]
-public class BrowsingController : ControllerBase
+namespace cars_rental.Controllers
 {
-    private readonly CarRentalDbContext _context; // تأكد من اسم الـ Context هنا
-
-    public BrowsingController(CarRentalDbContext context)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BrowsingController : ControllerBase
     {
-        _context = context;
-    }
+        private readonly CarRentalDbContext _context;
 
-    // تست بسيط: هل الداتا بيز شغالة وبترجع داتا؟
-    [HttpGet("test-db")]
-    public async Task<IActionResult> TestDatabase()
-    {
-        try
+        public BrowsingController(CarRentalDbContext context)
         {
-            // هنحاول نجيب أول عربية موجودة في الجدول
-            var firstCar = await _context.Cars.FirstOrDefaultAsync();
+            _context = context;
+        }
 
-            if (firstCar == null)
+        // 1. عرض كل العربيات (مع الصور)
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<CarListingDTO>>> GetAllCars()
+        {
+            var cars = await _context.Cars
+                .Where(c => c.PostStatus == "approved")
+                .Select(c => new CarListingDTO
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    Brand = c.Brand,
+                    Model = c.Model,
+                    RentalPrice = c.RentalPrice,
+                    Location = c.Location,
+                    CarType = c.CarType,
+                    Transmission = c.Transmission == null ? null : c.Transmission.ToString(),
+                    // السطر ده هو اللي بينور الصور في الفرونت
+                    MainImageUrl = c.CarImages.OrderByDescending(img => img.IsMain).Select(img => img.ImageUrl).FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Ok(cars);
+        }
+
+        // 2. عرض تفاصيل عربية واحدة بالـ ID
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CarListingDTO>> GetCarById(int id)
+        {
+            var car = await _context.Cars
+                .Where(c => c.Id == id)
+                .Select(c => new CarListingDTO
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    Brand = c.Brand,
+                    Model = c.Model,
+                    RentalPrice = c.RentalPrice,
+                    Location = c.Location,
+                    CarType = c.CarType,
+                    Transmission = c.Transmission == null ? null : c.Transmission.ToString(),
+                    MainImageUrl = c.CarImages.OrderByDescending(img => img.IsMain).Select(img => img.ImageUrl).FirstOrDefault()
+                })
+                .FirstOrDefaultAsync();
+
+            if (car == null) return NotFound(new { message = "Car not found!" });
+
+            return Ok(car);
+        }
+
+        // 3. الفلتر والبحث (تم إضافة الصور هنا أيضاً)
+        [HttpGet("filter")]
+        public async Task<ActionResult<IEnumerable<CarListingDTO>>> FilterCars(
+            [FromQuery] string? search,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string? transmission)
+        {
+            var query = _context.Cars.Where(c => c.PostStatus == "approved").AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
             {
-                return Ok(new { message = "Connected! But the Cars table is empty." });
+                query = query.Where(c => c.Brand.Contains(search) || c.Model.Contains(search) || c.Title.Contains(search));
             }
 
-            return Ok(new { message = "Success! Connected to Database.", data = firstCar });
-        }
-        catch (Exception ex)
-        {
-            // لو فيه مشكلة في الباسورد أو السيرفر هيظهر هنا
-            return BadRequest(new { message = "Connection Failed!", error = ex.Message });
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(c => c.RentalPrice <= maxPrice.Value);
+            }
+
+            if (!string.IsNullOrEmpty(transmission))
+            {
+                query = query.Where(c => c.Transmission == transmission);
+            }
+
+            var cars = await query.Select(c => new CarListingDTO
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Brand = c.Brand,
+                Model = c.Model,
+                RentalPrice = c.RentalPrice,
+                Location = c.Location,
+                CarType = c.CarType,
+                Transmission = c.Transmission == null ? null : c.Transmission.ToString(),
+                MainImageUrl = c.CarImages.OrderByDescending(img => img.IsMain).Select(img => img.ImageUrl).FirstOrDefault()
+            }).ToListAsync();
+
+            return Ok(cars);
         }
     }
 }

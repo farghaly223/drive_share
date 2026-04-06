@@ -31,6 +31,8 @@ public partial class Car
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
+    public virtual ICollection<CarImage> CarImages { get; set; } = new List<CarImage>();
+
     public virtual User Owner { get; set; } = null!;
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();

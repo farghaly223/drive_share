@@ -20,6 +20,10 @@ public partial class CarRentalDbContext : DbContext
 
     public virtual DbSet<Car> Cars { get; set; }
 
+    public virtual DbSet<CarImage> CarImages { get; set; }
+
+    public virtual DbSet<Invoice> Invoices { get; set; }
+
     public virtual DbSet<Notification> Notifications { get; set; }
 
     public virtual DbSet<Review> Reviews { get; set; }
@@ -28,7 +32,7 @@ public partial class CarRentalDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=localhost;port=3306;database=car_rental_db;user=root;password=123", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.43-mysql"));
+        => optionsBuilder.UseMySql("server=localhost;database=car_rental_db;user=root;password=123", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.43-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -116,6 +120,42 @@ public partial class CarRentalDbContext : DbContext
             entity.HasOne(d => d.Owner).WithMany(p => p.Cars)
                 .HasForeignKey(d => d.OwnerId)
                 .HasConstraintName("cars_ibfk_1");
+        });
+
+        modelBuilder.Entity<CarImage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("car_images");
+
+            entity.HasIndex(e => e.CarId, "car_id");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CarId).HasColumnName("car_id");
+            entity.Property(e => e.ImageUrl)
+                .HasMaxLength(255)
+                .HasColumnName("image_url");
+            entity.Property(e => e.IsMain)
+                .HasDefaultValueSql("'0'")
+                .HasColumnName("is_main");
+
+            entity.HasOne(d => d.Car).WithMany(p => p.CarImages)
+                .HasForeignKey(d => d.CarId)
+                .HasConstraintName("car_images_ibfk_1");
+        });
+
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("invoices");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.AppointmentId).HasColumnName("appointment_id");
+            entity.Property(e => e.PaymentStatus)
+                .HasColumnType("enum('PAID','UNPAID')")
+                .HasColumnName("payment_status");
+            entity.Property(e => e.TotalAmount).HasColumnName("total_amount");
         });
 
         modelBuilder.Entity<Notification>(entity =>
