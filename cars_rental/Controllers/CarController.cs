@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using cars_rental.Models;
-
+using cars_rental.DTOs;
 namespace cars_rental.Controllers
 {
     [Route("api/[controller]")]
@@ -15,15 +15,26 @@ namespace cars_rental.Controllers
             _context = context;
         }
 
-        [HttpPost]
-public async Task<IActionResult> AddCar(Car car)
+[HttpPost]
+public async Task<IActionResult> AddCar(CarCreateUpdateDto dto)
 {
-    car.PostStatus = "Pending";
+    var car = new Car
+    {
+        Title = dto.Title,
+        Description = dto.Description,
+        CarType = dto.CarType,
+        Brand = dto.Brand,
+        Model = dto.Model,
+        Year = dto.Year,
+        Transmission = dto.Transmission,
+        Location = dto.Location,
+        RentalPrice = dto.RentalPrice,
+        PostStatus = "Pending"
+    };
 
     _context.Cars.Add(car);
     await _context.SaveChangesAsync();
 
-    // 👇 بدل ما تنادي BrowsingController
     var createdCar = await _context.Cars
         .Include(c => c.CarImages)
         .Include(c => c.Reviews)
@@ -31,30 +42,28 @@ public async Task<IActionResult> AddCar(Car car)
 
     return Ok(createdCar);
 }
+      [HttpPut("{id}")]
+public async Task<IActionResult> UpdateCar(int id, CarCreateUpdateDto dto)
+{
+    var car = await _context.Cars.FindAsync(id);
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCar(int id, Car updatedCar)
-        {
-            var car = await _context.Cars.FindAsync(id);
+    if (car == null)
+        return NotFound();
 
-            if (car == null)
-                return NotFound();
+    car.Title = dto.Title;
+    car.Description = dto.Description;
+    car.CarType = dto.CarType;
+    car.Brand = dto.Brand;
+    car.Model = dto.Model;
+    car.Year = dto.Year;
+    car.Transmission = dto.Transmission;
+    car.Location = dto.Location;
+    car.RentalPrice = dto.RentalPrice;
 
+    await _context.SaveChangesAsync();
 
-            car.Title = updatedCar.Title;
-            car.Description = updatedCar.Description;
-            car.CarType = updatedCar.CarType;
-            car.Brand = updatedCar.Brand;
-            car.Model = updatedCar.Model;
-            car.Year = updatedCar.Year;
-            car.Transmission = updatedCar.Transmission;
-            car.Location = updatedCar.Location;
-            car.RentalPrice = updatedCar.RentalPrice;
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
+    return NoContent();
+}
 
         // ✅ Delete Car (Owner - لو مش متأجرة)
         [HttpDelete("{id}")]
