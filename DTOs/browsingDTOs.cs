@@ -1,0 +1,19 @@
+﻿namespace cars_rental.DTOs
+{
+    public class CarListingDTO
+    {
+        public int Id { get; set; }
+        public string? OwnerName { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? CarType { get; set; }
+        public string? Brand { get; set; }
+        public string? Model { get; set; }
+        public int Year { get; set; }
+        public string? Transmission { get; set; }
+        public string? Location { get; set; }
+        public decimal? RentalPrice { get; set; }
+        public string? RentalStatus { get; set; } // Added: Available / Rented
+        public string? MainImageUrl { get; set; }
+    }
+}
