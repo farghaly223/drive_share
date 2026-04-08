@@ -119,7 +119,16 @@ INSERT INTO car_images (car_id, image_url, is_main) VALUES
 =======
 
 
+INSERT INTO Users (name, email, password, role, account_status, is_license_verified)
+VALUES 
+-- 1. يوزر بصفة Admin (عشان لو محتاج تجرب صلاحيات الإدارة)
+('Moustafa Admin', 'admin@cars.com', 'password123', 'admin', 'approved', FALSE),
 
+-- 2. يوزر بصفة Owner (عشان تربطه بالعربيات اللي هتعمل لها Insert)
+
+
+-- 3. يوزر بصفة Renter (عشان تستخدم الـ ID بتاعه في جدول الـ Booking)
+('hanen ', 'renter@cars.com', 'password123', 'renter', 'approved', TRUE);
 
 
 
