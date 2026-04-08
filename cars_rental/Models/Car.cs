@@ -36,4 +36,7 @@ public partial class Car
     public virtual User Owner { get; set; } = null!;
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+    public string RentalStatus { get; set; } = "Available";
+    public string? AvailabilityCalendar { get; set; }
 }
