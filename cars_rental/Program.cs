@@ -56,6 +56,8 @@ builder.Services.AddDbContext<CarRentalDbContext>(options =>
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RoleNormalizationService>(); // ✅ Add role normalization service
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // 🔥 تسجيل خدمات الأدمن لحل مشكلة الـ 500
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
