@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cars_rental.Models;
 
@@ -38,5 +39,8 @@ public partial class Car
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public string RentalStatus { get; set; } = "Available";
+
+    
     public string? AvailabilityCalendar { get; set; }
+    
 }

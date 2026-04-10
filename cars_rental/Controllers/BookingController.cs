@@ -1,5 +1,6 @@
 ﻿using cars_rental.DTOs;
 using cars_rental.Models;
+using cars_rental.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,71 +13,38 @@ namespace cars_rental.Controllers
     [ApiController]
     public class BookingController : ControllerBase
     {
-        private readonly CarRentalDbContext _context;
+        private readonly IBookingService _bookingService;
+        public BookingController(IBookingService bookingService) => _bookingService = bookingService;
 
-        public BookingController(CarRentalDbContext context)
-        {
-            _context = context;
-        }
-        
-        [Authorize(Roles = "Renter")]
+        [Authorize(Roles = "renter")]
         [HttpPost("request")]
-        public async Task<IActionResult> RequestRental(BookingRequestDto request)
+        public async Task<IActionResult> RequestRental(BookingDto request)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var user = await _context.Users.FindAsync(userId);
+            var result = await _bookingService.CreateRentalRequestAsync(userId, request);
 
-          
-            if (user.IsLicenseVerified != true)
-                return BadRequest("Please submit your driver license for verification first.");
-
-            var car = await _context.Cars.FindAsync(request.CarId);
-            if (car == null || car.PostStatus != "Approved") return BadRequest("Car is not available for rental.");
-
-            var booking = new Booking
-            {
-                CarId = request.CarId,
-                RenterId = userId,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
-                Status = "Pending",
-                CreatedAt = DateTime.Now
-            };
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-            return Ok("Rental request sent successfully.");
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        [Authorize(Roles = "CarOwner")]
+        [Authorize(Roles = "owner")]
         [HttpPatch("{id}/respond")]
         public async Task<IActionResult> RespondToBooking(int id, [FromBody] bool accept)
         {
-            var booking = await _context.Bookings.Include(b => b.Car).FirstOrDefaultAsync(b => b.Id == id);
-            if (booking == null) return NotFound();
-
             var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            if (booking.Car.OwnerId != ownerId) return Forbid();
+            var result = await _bookingService.RespondToBookingAsync(ownerId, id, accept);
 
-            booking.Status = accept ? "Accepted" : "Rejected";
+            if (result.StatusCode == 404) return NotFound(result.Message);
+            if (result.StatusCode == 403) return Forbid();
 
-            if (accept) booking.Car.RentalStatus = "Rented";
-
-            await _context.SaveChangesAsync();
-            return Ok($"Booking has been {booking.Status}");
+            return Ok(result.Message);
         }
 
-        [Authorize(Roles = "CarOwner")]
+        [Authorize(Roles = "owner")]
         [HttpPatch("{id}/complete")]
         public async Task<IActionResult> CompleteBooking(int id)
         {
-            var booking = await _context.Bookings.Include(b => b.Car).FirstOrDefaultAsync(b => b.Id == id);
-            if (booking == null) return NotFound();
-
-            booking.Status = "Completed";
-            booking.Car.RentalStatus = "Available"; 
-
-            await _context.SaveChangesAsync();
-            return Ok("Rental completed. Renter can now leave feedback.");
+            var result = await _bookingService.CompleteBookingAsync(id);
+            return result.Success ? Ok(result.Message) : NotFound(result.Message);
         }
     }
 }
