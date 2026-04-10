@@ -58,7 +58,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RoleNormalizationService>(); // ✅ Add role normalization service
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
-
+builder.Services.AddSignalR();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+app.MapHub<NotificationHub>("/notificationHub");
 // 🔥 تسجيل خدمات الأدمن لحل مشكلة الـ 500
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAdminService, AdminService>();
