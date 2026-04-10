@@ -1,4 +1,5 @@
 using cars_rental.Handlers;
+using cars_rental.Hubs;
 using cars_rental.Interfaces;
 using cars_rental.Middleware;
 using cars_rental.Models;
@@ -61,7 +62,6 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
-app.MapHub<NotificationHub>("/notificationHub");
 // 🔥 تسجيل خدمات الأدمن لحل مشكلة الـ 500
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -112,6 +112,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
+app.MapHub<NotificationHub>("/notificationHub");
 
 // 🔥 CRITICAL: Normalize all user roles to lowercase on startup (fixes 403 errors from mixed-case roles)
 // This MUST run before the app starts handling requests
