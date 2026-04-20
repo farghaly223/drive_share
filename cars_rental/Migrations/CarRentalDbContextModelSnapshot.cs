@@ -86,7 +86,6 @@ namespace cars_rental.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AvailabilityCalendar")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("Brand")

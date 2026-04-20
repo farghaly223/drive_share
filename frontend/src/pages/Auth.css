@@ -1,0 +1,30 @@
+.auth-page {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px; min-height: calc(100vh - 64px);
+  background: radial-gradient(ellipse at 50% 0%, rgba(232,160,32,0.06) 0%, transparent 60%);
+}
+.auth-card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 40px;
+  width: 100%; max-width: 440px;
+  box-shadow: var(--shadow);
+}
+.auth-logo { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 28px; text-align: center; }
+.auth-title { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.auth-sub { color: var(--text2); font-size: 14px; margin-bottom: 28px; }
+.auth-form { display: flex; flex-direction: column; gap: 18px; }
+.auth-btn { width: 100%; padding: 13px; font-size: 15px; font-weight: 700; margin-top: 6px; }
+.auth-footer { margin-top: 24px; text-align: center; color: var(--text2); font-size: 14px; }
+.auth-footer a { color: var(--accent); font-weight: 600; }
+.auth-footer a:hover { text-decoration: underline; }
+.role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.role-option { display: none; }
+.role-label {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 10px; border: 2px solid var(--border2); border-radius: var(--radius);
+  cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.role-label:hover { border-color: var(--accent); background: var(--accentbg); }
+.role-option:checked + .role-label { border-color: var(--accent); background: var(--accentbg); color: var(--accent); }
+.role-icon { font-size: 24px; }
+.role-name { font-size: 13px; font-weight: 600; }
