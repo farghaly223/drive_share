@@ -53,64 +53,87 @@ const BookingRequestsPage = () => {
     }
   };
 
+  const getStatusClass = (status: string) => {
+    const s = status?.toLowerCase();
+    if (s === 'accepted') return 'status-accepted';
+    if (s === 'pending') return 'status-pending';
+    if (s === 'rejected') return 'status-rejected';
+    if (s === 'completed') return 'status-completed';
+    return 'status-pending';
+  };
+
   if (loading) return <Loading />;
 
   return (
     <div>
-      <h2>Rental Requests</h2>
+      <div className="page-header">
+        <h2>Rental Requests</h2>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{requests.length} requests</span>
+      </div>
+
       {error && <ErrorAlert message={error} />}
+
       {requests.length === 0 && !error ? (
-        <p>No pending requests.</p>
+        <div className="empty-state">
+          <p>No pending requests.</p>
+        </div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Car</th>
-              <th>Renter</th>
-              <th>Dates</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((req) => (
-              <tr key={req.id}>
-                <td>{req.car?.title}</td>
-                <td>Renter #{req.renterId}</td>
-                <td>{req.startDate} - {req.endDate}</td>
-                <td>{req.status}</td>
-                <td>
-                  {req.status === 'Pending' && (
-                    <>
-                      <button
-                        onClick={() => handleRespond(req.id, true)}
-                        disabled={processing === req.id}
-                        className="approve-btn"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleRespond(req.id, false)}
-                        disabled={processing === req.id}
-                        className="reject-btn"
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-                  {req.status === 'Accepted' && (
-                    <button
-                      onClick={() => handleComplete(req.id)}
-                      disabled={processing === req.id}
-                    >
-                      Mark Completed
-                    </button>
-                  )}
-                </td>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Car</th>
+                <th>Renter</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {requests.map((req) => (
+                <tr key={req.id}>
+                  <td><strong>{req.car?.title}</strong></td>
+                  <td>Renter #{req.renterId}</td>
+                  <td>{req.startDate}</td>
+                  <td>{req.endDate}</td>
+                  <td><span className={`status-badge ${getStatusClass(req.status)}`}>{req.status}</span></td>
+                  <td>
+                    <div className="actions">
+                      {req.status === 'Pending' && (
+                        <>
+                          <button
+                            onClick={() => handleRespond(req.id, true)}
+                            disabled={processing === req.id}
+                            className="approve-btn"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleRespond(req.id, false)}
+                            disabled={processing === req.id}
+                            className="reject-btn"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {req.status === 'Accepted' && (
+                        <button
+                          onClick={() => handleComplete(req.id)}
+                          disabled={processing === req.id}
+                          style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.25)' }}
+                        >
+                          Mark Completed
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -4,7 +4,7 @@ import Loading from '../../components/common/Loading';
 import ErrorAlert from '../../components/common/ErrorAlert';
 
 interface User {
-  id: number;          // changed from userId
+  id: number;
   email: string;
   role: string;
 }
@@ -36,7 +36,7 @@ const UserRoleManager = () => {
     setUpdating(userId);
     try {
       await authApi.updateUserRole(userId, newRole);
-      await fetchUsers(); // refresh list
+      await fetchUsers();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update role');
     } finally {
@@ -49,38 +49,66 @@ const UserRoleManager = () => {
 
   return (
     <div>
-      <h2>User Role Management</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Email</th>
-            <th>Current Role</th>
-            <th>Change Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
-              <td>{user.email}</td>
-              <td>{user.role}</td>
-              <td>
-                <select
-                  value={user.role}
-                  onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                  disabled={updating === user.id}
-                >
-                  <option value="renter">Renter</option>
-                  <option value="owner">Owner</option>
-                  <option value="admin">Admin</option>
-                </select>
-                {updating === user.id && <span> Updating...</span>}
-              </td>
+      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.1rem', margin: 0 }}>User Role Management</h2>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{users.length} users</span>
+      </div>
+
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Current Role</th>
+              <th>Change Role</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{user.id}</td>
+                <td><strong>{user.email}</strong></td>
+                <td>
+                  <span className={`status-badge ${
+                    user.role === 'admin' ? 'status-completed' :
+                    user.role === 'owner' ? 'status-accepted' :
+                    'status-pending'
+                  }`} style={{ textTransform: 'capitalize' }}>
+                    {user.role}
+                  </span>
+                </td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                      disabled={updating === user.id}
+                      style={{
+                        padding: '0.4rem 0.7rem',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--text-primary)',
+                        fontFamily: 'DM Sans, sans-serif',
+                        fontSize: '0.825rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <option value="renter">Renter</option>
+                      <option value="owner">Owner</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    {updating === user.id && (
+                      <span style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>Updating...</span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

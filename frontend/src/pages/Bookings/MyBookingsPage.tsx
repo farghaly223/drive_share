@@ -14,32 +14,51 @@ const MyBookingsPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const getStatusClass = (status: string) => {
+    const s = status?.toLowerCase();
+    if (s === 'accepted') return 'status-accepted';
+    if (s === 'pending') return 'status-pending';
+    if (s === 'rejected') return 'status-rejected';
+    if (s === 'completed') return 'status-completed';
+    return 'status-pending';
+  };
+
   if (loading) return <Loading />;
 
   return (
     <div>
-      <h2>My Bookings</h2>
+      <div className="page-header">
+        <h2>My Bookings</h2>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{bookings.length} total</span>
+      </div>
+
       {bookings.length === 0 ? (
-        <p>No bookings yet.</p>
+        <div className="empty-state">
+          <p>No bookings yet.</p>
+        </div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Car</th>
-              <th>Dates</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((b) => (
-              <tr key={b.id}>
-                <td>{b.car?.title} ({b.car?.brand})</td>
-                <td>{b.startDate} to {b.endDate}</td>
-                <td>{b.status}</td>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Car</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bookings.map((b) => (
+                <tr key={b.id}>
+                  <td><strong>{b.car?.title}</strong><br /><span style={{ fontSize: '0.8rem' }}>{b.car?.brand}</span></td>
+                  <td>{b.startDate}</td>
+                  <td>{b.endDate}</td>
+                  <td><span className={`status-badge ${getStatusClass(b.status)}`}>{b.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

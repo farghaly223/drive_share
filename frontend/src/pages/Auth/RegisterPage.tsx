@@ -40,24 +40,27 @@ const RegisterPage = () => {
 
   return (
     <div className="auth-form">
-      <h2>Register</h2>
+      <h2>Create account</h2>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: 0, marginBottom: '1.75rem' }}>
+        Join DriveShare today
+      </p>
       {error && <ErrorAlert message={error} onDismiss={() => setError('')} />}
       <form onSubmit={handleSubmit}>
         <div>
           <label>Full Name</label>
-          <input name="name" value={formData.name} onChange={handleChange} required />
+          <input name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" required />
         </div>
         <div>
           <label>Email</label>
-          <input name="email" type="email" value={formData.email} onChange={handleChange} required />
+          <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
         </div>
         <div>
           <label>Password</label>
-          <input name="password" type="password" value={formData.password} onChange={handleChange} required />
+          <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required />
         </div>
         <div>
           <label>Confirm Password</label>
-          <input name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} required />
+          <input name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" required />
         </div>
         <div>
           <label>Register as</label>
@@ -67,7 +70,7 @@ const RegisterPage = () => {
           </select>
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Registering...' : 'Register'}
+          {loading ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
     </div>

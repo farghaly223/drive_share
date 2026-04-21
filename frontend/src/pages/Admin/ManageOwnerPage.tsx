@@ -63,17 +63,29 @@ const ManageOwnerPage = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <ErrorAlert message={error} />;
+  if (!owner && error) return <ErrorAlert message={error} />;
   if (!owner) return <p>Owner not found</p>;
 
   return (
-    <div className="manage-owner">
-      <h2>Manage Car Owner</h2>
+    <div className="manage-owner" style={{ maxWidth: '600px' }}>
+      <div className="page-header">
+        <h2>Manage Car Owner</h2>
+      </div>
+
+      {error && <ErrorAlert message={error} onDismiss={() => setError('')} />}
+      {message && <div className="success-message">{message}</div>}
+
       <div className="owner-details">
+        <h3>Owner Information</h3>
         <p><strong>Name:</strong> {owner.name}</p>
         <p><strong>Email:</strong> {owner.email}</p>
         <p><strong>Registered:</strong> {new Date(owner.registrationDate).toLocaleDateString()}</p>
-        <p><strong>Status:</strong> {owner.status}</p>
+        <p>
+          <strong>Status:</strong>{' '}
+          <span className={`status-badge ${owner.status === 'Pending' ? 'status-pending' : owner.status === 'Approved' ? 'status-available' : 'status-rejected'}`}>
+            {owner.status}
+          </span>
+        </p>
       </div>
 
       {owner.status === 'Pending' && (
@@ -82,24 +94,23 @@ const ManageOwnerPage = () => {
             onClick={() => handleAction(true)}
             disabled={processing}
             className="approve-btn"
+            style={{ padding: '0.65rem 1.5rem' }}
           >
-            Approve Owner
+            {processing ? 'Processing...' : 'Approve Owner'}
           </button>
           <button
             onClick={() => handleAction(false)}
             disabled={processing}
             className="reject-btn"
+            style={{ padding: '0.65rem 1.5rem' }}
           >
-            Reject Owner
+            {processing ? 'Processing...' : 'Reject Owner'}
           </button>
         </div>
       )}
 
-      {message && <div className="success-message">{message}</div>}
-      {error && <ErrorAlert message={error} onDismiss={() => setError('')} />}
-
       <button onClick={() => navigate('/admin/pending-owners')} className="back-btn">
-        Back to Pending Owners
+        ← Back to Pending Owners
       </button>
     </div>
   );

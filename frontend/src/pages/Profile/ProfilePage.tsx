@@ -5,10 +5,24 @@ const ProfilePage = () => {
 
   return (
     <div>
-      <h2>Profile</h2>
-      <p><strong>Email:</strong> {user?.email}</p>
-      <p><strong>Role:</strong> {user?.role}</p>
-      <p><strong>User ID:</strong> {user?.userId}</p>
+      <div className="page-header">
+        <h2>Profile</h2>
+      </div>
+      <div className="profile-card">
+        <h2>Account Details</h2>
+        <div className="profile-row">
+          <span className="label">Email</span>
+          <span className="value">{user?.email}</span>
+        </div>
+        <div className="profile-row">
+          <span className="label">Role</span>
+          <span className="value" style={{ textTransform: 'capitalize' }}>{user?.role}</span>
+        </div>
+        <div className="profile-row">
+          <span className="label">User ID</span>
+          <span className="value" style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{user?.userId}</span>
+        </div>
+      </div>
     </div>
   );
 };

@@ -50,18 +50,53 @@ const CarPublicDetailPage = () => {
   if (error) return <ErrorAlert message={error} />;
   if (!car) return <p>Car not found</p>;
 
+  const statusClass = car.rentalStatus?.toLowerCase() === 'available' ? 'status-available' : 'status-rented';
+
   return (
     <div className="car-detail">
-      <h2>{car.title}</h2>
-      <img src={car.mainImageUrl || '/placeholder-car.jpg'} alt={car.title} style={{ maxWidth: '400px' }} />
-      <p><strong>Owner:</strong> {car.ownerName}</p>
-      <p><strong>Description:</strong> {car.description}</p>
-      <p><strong>Type:</strong> {car.carType}</p>
-      <p><strong>Brand/Model:</strong> {car.brand} {car.model} ({car.year})</p>
-      <p><strong>Transmission:</strong> {car.transmission}</p>
-      <p><strong>Location:</strong> {car.location}</p>
-      <p><strong>Price per day:</strong> ${car.rentalPrice}</p>
-      <p><strong>Status:</strong> {car.rentalStatus}</p>
+      <div className="car-detail-header">
+        <h2>{car.title}</h2>
+        <span className={`status-badge ${statusClass}`}>{car.rentalStatus}</span>
+      </div>
+
+      <img
+        className="car-detail-image"
+        src={car.mainImageUrl || '/placeholder-car.jpg'}
+        alt={car.title}
+      />
+
+      <div className="car-detail-grid">
+        <div className="car-detail-item">
+          <div className="label">Owner</div>
+          <div className="value">{car.ownerName}</div>
+        </div>
+        <div className="car-detail-item">
+          <div className="label">Car Type</div>
+          <div className="value">{car.carType}</div>
+        </div>
+        <div className="car-detail-item">
+          <div className="label">Brand / Model</div>
+          <div className="value">{car.brand} {car.model} ({car.year})</div>
+        </div>
+        <div className="car-detail-item">
+          <div className="label">Transmission</div>
+          <div className="value">{car.transmission}</div>
+        </div>
+        <div className="car-detail-item">
+          <div className="label">Location</div>
+          <div className="value">{car.location}</div>
+        </div>
+        <div className="car-detail-item">
+          <div className="label">Price per day</div>
+          <div className="car-detail-price">${car.rentalPrice}<span>/day</span></div>
+        </div>
+      </div>
+
+      {car.description && (
+        <div style={{ marginBottom: '2rem' }}>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>{car.description}</p>
+        </div>
+      )}
 
       {isRenter && car.rentalStatus === 'Available' && (
         <div className="booking-form">
@@ -86,13 +121,18 @@ const CarPublicDetailPage = () => {
               />
             </div>
             <button type="submit" disabled={bookingLoading}>
-              {bookingLoading ? 'Sending...' : 'Request Booking'}
+              {bookingLoading ? 'Sending request...' : 'Request Booking'}
             </button>
           </form>
         </div>
       )}
+
       {!isAuthenticated && (
-        <p><Link to="/login">Login</Link> to book this car.</p>
+        <div className="booking-form">
+          <p style={{ margin: 0 }}>
+            <Link to="/login">Login</Link> to book this car.
+          </p>
+        </div>
       )}
     </div>
   );

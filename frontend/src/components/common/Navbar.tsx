@@ -13,7 +13,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-brand">
-        <Link to="/">DriveShare</Link>
+        <Link to="/">Esh7t <span style={{ color: 'var(--accent)' }}>3rabya </span></Link>
       </div>
       <ul className="nav-links">
         <li>
@@ -55,7 +55,9 @@ const Navbar = () => {
               <Link to="/login">Login</Link>
             </li>
             <li>
-              <Link to="/register">Register</Link>
+              <Link to="/register" style={{ color: 'var(--accent)', background: 'var(--accent-dim)', padding: '0.45rem 0.85rem', borderRadius: 'var(--radius-sm)' }}>
+                Register
+              </Link>
             </li>
           </>
         )}

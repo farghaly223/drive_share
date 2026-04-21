@@ -17,9 +17,8 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const userData = await login(email, password);
-      console.log('🔍 Login userData:', userData);                // <-- ADD
-    console.log('🔍 Role from login:', userData.role);          // <-- ADD
-      // Redirect based on role
+      console.log('🔍 Login userData:', userData);
+      console.log('🔍 Role from login:', userData.role);
       if (userData.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (userData.role === 'owner') {
@@ -36,7 +35,10 @@ const LoginPage = () => {
 
   return (
     <div className="auth-form">
-      <h2>Login</h2>
+      <h2>Welcome back</h2>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: 0, marginBottom: '1.75rem' }}>
+        Sign in to your DriveShare account
+      </p>
       {error && <ErrorAlert message={error} onDismiss={() => setError('')} />}
       <form onSubmit={handleSubmit}>
         <div>
@@ -45,6 +47,7 @@ const LoginPage = () => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
             required
           />
         </div>
@@ -54,11 +57,12 @@ const LoginPage = () => {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
             required
           />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
     </div>
