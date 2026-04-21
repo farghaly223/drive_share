@@ -13,7 +13,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-brand">
-        <Link to="/">Esh7t <span style={{ color: 'var(--accent)' }}>3rabya </span></Link>
+        <Link to="/">Motion<span style={{ color: 'var(--accent)' }}>X</span></Link>
       </div>
       <ul className="nav-links">
         <li>
