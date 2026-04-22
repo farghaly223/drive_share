@@ -1,84 +1,41 @@
 using cars_rental.Models;
+using cars_rental.Repository;
 using Microsoft.EntityFrameworkCore;
-
-namespace cars_rental.Repository
+public class AuthRepository : IAuthRepository
 {
-    /// <summary>
-    /// مستودع المصادقة - يتعامل مع عمليات قاعدة البيانات المتعلقة بالمستخدمين
-    /// Authentication Repository - Handles database operations for Users
-    /// </summary>
-    public class AuthRepository : IAuthRepository
+    private readonly CarRentalDbContext _context;
+
+    public AuthRepository(CarRentalDbContext context) => _context = context;
+
+    // الميثود القديمة كما هي
+    public async Task<User?> GetUserByEmailAsync(string email) =>
+        await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+
+    public async Task<User> RegisterUserAsync(User user)
     {
-        private readonly CarRentalDbContext _context;
+        await _context.Users.AddAsync(user);
+        await SaveChangesAsync();
+        return user;
+    }
 
-        /// <summary>
-        /// مُنشئ المستودع / Repository Constructor
-        /// </summary>
-        public AuthRepository(CarRentalDbContext context)
-        {
-            _context = context;
-        }
+    // تعديل بسيط: شلنا AsNoTracking عشان نقدر نحدث البيانات بعدها في الـ Service
+    public async Task<User?> GetUserByIdAsync(int userId)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+    }
 
-        /// <summary>
-        /// الحصول على مستخدم من خلال البريد الإلكتروني
-        /// Get a user by email address from the database
-        /// </summary>
-        public async Task<User?> GetUserByEmailAsync(string email)
-        {
-            // البحث عن مستخدم بناءً على البريد الإلكتروني (غير حساس لحالة الأحرف)
-            // Search for a user based on email (case-insensitive)
-            return await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
-        }
+    public async Task<bool> EmailExistsAsync(string email) =>
+        await _context.Users.AnyAsync(u => u.Email.ToLower() == email.ToLower());
 
-        /// <summary>
-        /// تسجيل مستخدم جديد في قاعدة البيانات
-        /// Register a new user in the database
-        /// </summary>
-        public async Task<User> RegisterUserAsync(User user)
-        {
-            // إضافة المستخدم الجديد إلى قاعدة البيانات
-            // Add new user to the database
-            await _context.Users.AddAsync(user);
-            await SaveChangesAsync();
-            return user;
-        }
+    public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 
-        /// <summary>
-        /// الحصول على مستخدم من خلال المعرف
-        /// Get a user by their ID
-        /// </summary>
-        public async Task<User?> GetUserByIdAsync(int userId)
-        {
-            // البحث عن مستخدم بناءً على معرفه الفريد
-            // Search for a user based on their unique ID
-            return await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId);
-        }
-
-        /// <summary>
-        /// التحقق من وجود البريد الإلكتروني في قاعدة البيانات
-        /// Check if an email already exists in the database
-        /// </summary>
-        public async Task<bool> EmailExistsAsync(string email)
-        {
-            // التحقق من وجود البريد الإلكتروني (غير حساس لحالة الأحرف)
-            // Check if email exists (case-insensitive)
-            return await _context.Users
-                .AnyAsync(u => u.Email.ToLower() == email.ToLower());
-        }
-
-        /// <summary>
-        /// حفظ التغييرات في قاعدة البيانات
-        /// Save changes to the database
-        /// </summary>
-        public async Task SaveChangesAsync()
-        {
-            // حفظ جميع التغييرات المعلقة إلى قاعدة البيانات
-            // Save all pending changes to database
-            await _context.SaveChangesAsync();
-        }
+    // --- التعديل الجديد ---
+    /// <summary>
+    /// تحديث بيانات المستخدم في قاعدة البيانات
+    /// </summary>
+    public async Task UpdateUserAsync(User user)
+    {
+        _context.Users.Update(user);
+        await SaveChangesAsync();
     }
 }

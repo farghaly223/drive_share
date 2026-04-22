@@ -46,5 +46,25 @@ namespace cars_rental.Controllers
             var result = await _bookingService.CompleteBookingAsync(id);
             return result.Success ? Ok(result.Message) : NotFound(result.Message);
         }
+
+        [Authorize(Roles = "renter")]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyBookings()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var bookings = await _bookingService.GetRenterBookingsAsync(userId);
+            return Ok(bookings);
+        }
+
+        [Authorize(Roles = "owner")]
+        [HttpGet("owner-requests")]
+        public async Task<IActionResult> GetOwnerRequests()
+        {
+            var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var requests = await _bookingService.GetOwnerBookingRequestsAsync(ownerId);
+            return Ok(requests);
+        }
+
     }
 }

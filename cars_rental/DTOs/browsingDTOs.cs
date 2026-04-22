@@ -13,7 +13,9 @@
         public string? Transmission { get; set; }
         public string? Location { get; set; }
         public decimal? RentalPrice { get; set; }
-        public string? RentalStatus { get; set; } // Added: Available / Rented
+        public string? RentalStatus { get; set; } 
         public string? MainImageUrl { get; set; }
+
+        public string? PostStatus { get; set; }
     }
 }

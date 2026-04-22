@@ -14,8 +14,8 @@ public partial class Booking
     public DateOnly StartDate { get; set; }
 
     public DateOnly EndDate { get; set; }
-
-    public decimal? TotalPrice { get; set; }
+    
+    public decimal TotalPrice { get; set; }
 
     public string? Status { get; set; }
 

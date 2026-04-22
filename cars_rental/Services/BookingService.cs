@@ -16,9 +16,6 @@ namespace cars_rental.Service
     if (user == null)
         return (false, "User not found");
 
-    // ✅ check إنه رافع الرخصة أصلا
-
-    // ✅ check إنها approved
     if (user.IsLicenseVerified != true)
         return (false, "Your license is still under review.");
 
@@ -29,9 +26,9 @@ namespace cars_rental.Service
     var days = request.EndDate.DayNumber - request.StartDate.DayNumber;
     if (days <= 0)
         return (false, "End date must be after start date.");
-    decimal totalPrice = days * (car.RentalPrice ?? 0);
+    decimal totalPrice = (decimal)days * (car.RentalPrice ?? 0m);
 
-    var booking = new Booking
+            var booking = new Booking
     {
         CarId = request.CarId,
         RenterId = userId,
@@ -73,6 +70,31 @@ namespace cars_rental.Service
             await _repository.SaveChangesAsync();
             return (true, "Rental completed. Renter can now leave feedback.");
         }
-        
+        public async Task<IEnumerable<BookingResponseDto>> GetRenterBookingsAsync(int userId)
+        {
+            var bookings = await _repository.GetBookingsByRenterIdAsync(userId);
+
+            return bookings.Select(b => new BookingResponseDto
+            {
+                Id = b.Id,
+                CarTitle = b.Car.Title,
+                Status = b.Status,
+                TotalPrice = b.TotalPrice
+            });
+        }
+
+        public async Task<IEnumerable<BookingResponseDto>> GetOwnerBookingRequestsAsync(int ownerId)
+        {
+            var bookings = await _repository.GetBookingsByOwnerIdAsync(ownerId);
+
+            return bookings.Select(b => new BookingResponseDto
+            {
+                Id = b.Id,
+                CarTitle = b.Car.Title,
+                Status = b.Status,
+                TotalPrice = b.TotalPrice
+            });
+        }
+
     }
 }

@@ -4,6 +4,7 @@ using cars_rental.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace cars_rental.Controllers
 {
@@ -192,6 +193,16 @@ namespace cars_rental.Controllers
 
             // هنا يجب تنفيذ منطق تحديث الدور في الخدمة / Implement role update logic in service
             return Ok(new { message = $"تم تحديث دور المستخدم {userId} إلى {newRole.ToLower()} / User {userId} role updated to {newRole.ToLower()}" });
+        }
+        [Authorize(Roles = "renter")]
+        [HttpPost("upload-license")]
+        public async Task<IActionResult> UploadLicense([FromBody] string licenseUrl)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _authService.UploadLicenseAsync(userId, licenseUrl);
+
+            if (result) return Ok(new { message = "تم رفع الرخصة بنجاح، بانتظار مراجعة الإدارة." });
+            return BadRequest("فشل في رفع الرخصة.");
         }
     }
 }

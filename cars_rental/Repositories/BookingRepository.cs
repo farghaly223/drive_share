@@ -14,6 +14,20 @@ namespace cars_rental.Repository
             await _context.Bookings.Include(b => b.Car).FirstOrDefaultAsync(b => b.Id == id);
         public async Task AddBookingAsync(Booking booking) => await _context.Bookings.AddAsync(booking);
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
-    }
+        public async Task<IEnumerable<Booking>> GetBookingsByRenterIdAsync(int renterId)
+        {
+            return await _context.Bookings
+                .Include(b => b.Car)
+                .Where(b => b.RenterId == renterId)
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<Booking>> GetBookingsByOwnerIdAsync(int ownerId)
+        {
+            return await _context.Bookings
+                .Include(b => b.Car)
+                .Where(b => b.Car.OwnerId == ownerId)
+                .ToListAsync();
+        }
 
+    }
 }
