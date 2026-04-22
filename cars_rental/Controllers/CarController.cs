@@ -50,5 +50,31 @@ namespace cars_rental.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "owner")]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyCars()
+        {
+            var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var cars = await _carsService.GetCarsByOwnerIdAsync(ownerId);
+            return Ok(cars);
+        }
+
+        [Authorize(Roles = "owner")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCar(int id, [FromBody] CarCreateUpdateDto carDto)
+        {
+            var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var result = await _carsService.UpdateCarAsync(ownerId, id, carDto);
+
+            if (!result.Success)
+            {
+                if (result.Message == "Unauthorized to update this car") return Forbid();
+                return NotFound(result.Message);
+            }
+
+            return Ok(result.Message);
+        }
+
     }
 }

@@ -9,6 +9,7 @@ namespace cars_rental.Repository
             Task<Booking> GetBookingWithCarAsync(int id);
             Task AddBookingAsync(Booking booking);
             Task SaveChangesAsync();
-
+            Task<IEnumerable<Booking>> GetBookingsByRenterIdAsync(int renterId);
+            Task<IEnumerable<Booking>> GetBookingsByOwnerIdAsync(int ownerId);
     }
 }

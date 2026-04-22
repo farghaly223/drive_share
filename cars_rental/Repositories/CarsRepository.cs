@@ -18,7 +18,20 @@ namespace cars_rental.Repository
         public void Delete(Car car) => _context.Cars.Remove(car);
 
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+        public async Task<IEnumerable<Car>> GetCarsByOwnerIdAsync(int ownerId)
+        {
+            return await _context.Cars.Where(c => c.OwnerId == ownerId).ToListAsync();
+        }
 
+        public async Task<Car> GetCarByIdAsync(int id) => await _context.Cars.FindAsync(id);
 
+        public async Task UpdateCarAsync(Car car)
+        {
+            _context.Cars.Update(car);
+            await _context.SaveChangesAsync();
+        }
     }
+
+
 }
+

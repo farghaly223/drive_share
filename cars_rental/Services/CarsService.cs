@@ -57,5 +57,31 @@ namespace cars_rental.Service
             await _repository.SaveChangesAsync();
             return (true, "Deleted", 204);
         }
+        public async Task<IEnumerable<Car>> GetCarsByOwnerIdAsync(int ownerId)
+        {
+            return await _repository.GetCarsByOwnerIdAsync(ownerId);
+        }
+
+        public async Task<(bool Success, string Message)> UpdateCarAsync(int ownerId, int carId, CarCreateUpdateDto carDto)
+        {
+            var car = await _repository.GetCarByIdAsync(carId);
+
+            if (car == null) return (false, "Car not found");
+            if (car.OwnerId != ownerId) return (false, "Unauthorized to update this car");
+
+            car.Title = carDto.Title;
+            car.Description = carDto.Description;
+            car.CarType = carDto.CarType;
+            car.Brand = carDto.Brand;
+            car.Model = carDto.Model;
+            car.Year = carDto.Year;
+            car.Transmission = carDto.Transmission;
+            car.Location = carDto.Location;
+            car.RentalPrice = carDto.RentalPrice;
+            car.AvailabilityCalendar = carDto.AvailabilityCalendar;
+
+            await _repository.UpdateCarAsync(car);
+            return (true, "Car updated successfully");
+        }
     }
 }

@@ -1,38 +1,37 @@
-﻿using cars_rental.DTOs;
-using cars_rental.Models;
-using cars_rental.Service;
+﻿using cars_rental.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace cars_rental.Controllers
+[Authorize(Roles = "admin")]
+[ApiController]
+[Route("api/[controller]")]
+public class AdminController : ControllerBase
 {
-    [Authorize(Roles = "admin")]
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AdminController : ControllerBase
+    private readonly IAdminService _adminService;
+    public AdminController(IAdminService adminService) => _adminService = adminService;
+
+    [HttpGet("pending-owners")]
+    public async Task<IActionResult> GetPendingOwners() => Ok(await _adminService.GetPendingOwnersAsync());
+
+    [HttpGet("pending-licenses")]
+    public async Task<IActionResult> GetPendingLicenses() => Ok(await _adminService.GetPendingLicensesAsync());
+
+    [HttpGet("pending-cars")]
+    public async Task<IActionResult> GetPendingCars() => Ok(await _adminService.GetPendingCarsAsync());
+
+    [HttpPost("manage-owner/{id}")]
+    public async Task<IActionResult> ManageOwner(int id, [FromBody] bool approve)
     {
-        private readonly IAdminService _adminService;
+        var result = await _adminService.ManageOwnerAsync(id, approve);
+        if (!result.Success) return NotFound(result.Message);
+        return Ok(new { message = result.Message });
+    }
 
-        public AdminController(IAdminService adminService)
-        {
-            _adminService = adminService;
-        }
-
-        [HttpGet("pending-owners")]
-        public async Task<IActionResult> GetPendingOwners()
-        {
-            var pendingOwners = await _adminService.GetPendingOwnersAsync();
-            return Ok(pendingOwners);
-        }
-
-        [HttpPost("manage-owner/{id}")]
-        public async Task<IActionResult> ManageOwner(int id, [FromBody] bool approve)
-        {
-            var result = await _adminService.ManageOwnerAsync(id, approve);
-
-            if (!result.Success) return NotFound(result.Message);
-
-            return Ok(new { message = result.Message });
-        }
+    [HttpPost("verify-license/{id}")]
+    public async Task<IActionResult> VerifyLicense(int id, [FromBody] bool approve)
+    {
+        var result = await _adminService.VerifyLicenseAsync(id, approve);
+        if (!result.Success) return NotFound(result.Message);
+        return Ok(new { message = result.Message });
     }
 }
