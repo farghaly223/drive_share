@@ -28,4 +28,9 @@ export const authApi = {
     api.put(`/Auth/update-role/${userId}`, JSON.stringify(role), {
       headers: { 'Content-Type': 'application/json' },
     }),
+
+    uploadLicense: (licenseUrl: string) =>
+    api.post('/Auth/upload-license', JSON.stringify(licenseUrl), {
+      headers: { 'Content-Type': 'application/json' },
+    }),
 };

@@ -18,6 +18,11 @@ export const adminApi = {
       headers: { 'Content-Type': 'application/json' },
     }),
     
+     getPendingLicenses: () => api.get('/Admin/pending-licenses'),
 
+     verifyLicense: (id: number, approve: boolean) =>
+    api.post(`/Admin/verify-license/${id}`, approve, {
+      headers: { 'Content-Type': 'application/json' },
+    }),
   
 };

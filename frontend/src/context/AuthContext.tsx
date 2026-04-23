@@ -5,12 +5,14 @@ import type { AuthResponse } from '../types';
 interface AuthContextType {
   user: AuthResponse | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<AuthResponse>; // <-- changed
+  login: (email: string, password: string) => Promise<AuthResponse>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isOwner: boolean;
   isRenter: boolean;
+  isLicenseVerified: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,42 +21,59 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<AuthResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+    const meRes = await authApi.me();
+    const userData: AuthResponse = {
+      token,
+      email: meRes.data.email,
+      role: meRes.data.role,
+      userId: meRes.data.userId,
+      isLicenseVerified: meRes.data.isLicenseVerified ?? (meRes.data.role !== 'renter'),
+    };
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  } catch (error) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  }
+};
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      authApi.me()
-        .then((res) => {
-          console.log('🔍 /me response:', res.data);        // <-- ADD
-          console.log('🔍 Role value:', res.data.role);     // <-- ADD
-          const userData: AuthResponse = {
-            token,
-            email: res.data.email,
-            role: res.data.role,
-            userId: res.data.userId,
-          };
-          setUser(userData);
-        })
-        .catch(() => {
-          localStorage.removeItem('token');
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
+  const token = localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user');
+  
+  if (token && storedUser) {
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      // Ensure isLicenseVerified is set (default to true if missing for non-renters)
+      const userData: AuthResponse = {
+        ...parsedUser,
+        isLicenseVerified: parsedUser.isLicenseVerified ?? (parsedUser.role !== 'renter'),
+      };
+      setUser(userData);
+    } catch {
+      refreshUser();
     }
-  }, []);
+  }
+  setLoading(false);
+}, []);
 
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     const res = await authApi.login({ email, password });
     const { token } = res.data;
     localStorage.setItem('token', token);
     const meRes = await authApi.me();
-    console.log('🔍 /me after login:', meRes.data);
     const userData: AuthResponse = {
-      token,
-      email: meRes.data.email,
-      role: meRes.data.role,
-      userId: meRes.data.userId,
-    };
+          token,
+          email: meRes.data.email,
+          role: meRes.data.role,
+          userId: meRes.data.userId,
+          isLicenseVerified: meRes.data.isLicenseVerified ?? (meRes.data.role !== 'renter'),
+        };
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     return userData;
@@ -70,6 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const isAdmin = user?.role === 'admin';
   const isOwner = user?.role === 'owner';
   const isRenter = user?.role === 'renter';
+  const isLicenseVerified = user?.isLicenseVerified ?? true; // default true for non-renters?
 
   return (
     <AuthContext.Provider
@@ -78,10 +98,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loading,
         login,
         logout,
+        refreshUser,
         isAuthenticated,
         isAdmin,
         isOwner,
         isRenter,
+        isLicenseVerified,
       }}
     >
       {children}

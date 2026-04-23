@@ -1,64 +1,59 @@
 import { useEffect, useState } from 'react';
 import { bookingApi } from '../../services/bookingApi';
-import type { BookingResponse } from '../../types';
+import type { MyBookingDTO } from '../../types';
 import Loading from '../../components/common/Loading';
+import ErrorAlert from '../../components/common/ErrorAlert';
 
 const MyBookingsPage = () => {
-  const [bookings, setBookings] = useState<BookingResponse[]>([]);
+  const [bookings, setBookings] = useState<MyBookingDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    bookingApi.getMyBookings()
-      .then((res) => setBookings(res.data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const res = await bookingApi.getMyBookings();
+        setBookings(res.data);
+      } catch (err: any) {
+        console.error('Failed to fetch my bookings:', err);
+        setError(err.response?.data?.message || 'Failed to load bookings');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
   }, []);
 
-  const getStatusClass = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s === 'accepted') return 'status-accepted';
-    if (s === 'pending') return 'status-pending';
-    if (s === 'rejected') return 'status-rejected';
-    if (s === 'completed') return 'status-completed';
-    return 'status-pending';
-  };
-
   if (loading) return <Loading />;
+  if (error) return <ErrorAlert message={error} />;
 
   return (
     <div>
-      <div className="page-header">
-        <h2>My Bookings</h2>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{bookings.length} total</span>
-      </div>
-
+      <h2>My Bookings</h2>
       {bookings.length === 0 ? (
-        <div className="empty-state">
-          <p>No bookings yet.</p>
-        </div>
+        <p>You haven't made any bookings yet.</p>
       ) : (
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Car</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Status</th>
+        <table>
+          <thead>
+            <tr>
+              <th>Booking ID</th>
+              <th>Car</th>
+              <th>Status</th>
+              <th>Total Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map((booking) => (
+              <tr key={booking.id}>
+                <td>{booking.id}</td>
+                <td>{booking.carTitle}</td>
+                <td style={{ textTransform: 'capitalize' }}>{booking.status}</td>
+                <td>${booking.totalPrice}</td>
               </tr>
-            </thead>
-            <tbody>
-              {bookings.map((b) => (
-                <tr key={b.id}>
-                  <td><strong>{b.car?.title}</strong><br /><span style={{ fontSize: '0.8rem' }}>{b.car?.brand}</span></td>
-                  <td>{b.startDate}</td>
-                  <td>{b.endDate}</td>
-                  <td><span className={`status-badge ${getStatusClass(b.status)}`}>{b.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

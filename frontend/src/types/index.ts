@@ -12,11 +12,19 @@ export interface UserLoginDto {
   password?: string;
 }
 
+export interface MyBookingDTO {
+  id: number;
+  carTitle: string;
+  status: string;
+  totalPrice: number;
+}
+
 export interface AuthResponse {
   token: string;
   email: string;
   role: string;
   userId: number;
+  isLicenseVerified?: boolean;
 }
 
 // ==================== Car ====================
@@ -33,6 +41,13 @@ export interface CarCreateUpdateDto {
   availabilityCalendar?: string;
 }
 
+export interface PendingLicense {
+  id: number;
+  name: string;
+  email: string;
+  driverLicenseUrl: string;
+  createdAt: string;
+}
 export interface CarListingDTO {
   id: number;
   ownerName?: string;
@@ -64,6 +79,14 @@ export interface BookingResponse {
   endDate: string;
   status: string;
   car?: CarListingDTO;
+}
+
+// For owner's rental requests list
+export interface OwnerBookingRequestDTO {
+  id: number;
+  carTitle: string;
+  status: string;
+  totalPrice: number;
 }
 
 // ==================== Admin ====================

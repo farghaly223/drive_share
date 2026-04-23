@@ -65,8 +65,8 @@ const RegisterPage = () => {
         <div>
           <label>Register as</label>
           <select name="role" value={formData.role} onChange={handleChange}>
-            <option value="Renter">Renter</option>
-            <option value="CarOwner">Car Owner</option>
+            <option value="renter">Renter</option>
+            <option value="owner">Owner</option>
           </select>
         </div>
         <button type="submit" disabled={loading}>

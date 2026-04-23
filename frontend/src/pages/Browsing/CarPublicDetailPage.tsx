@@ -27,7 +27,6 @@ const CarPublicDetailPage = () => {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
-
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -40,10 +39,11 @@ const CarPublicDetailPage = () => {
       alert('Booking request sent!');
       setBooking({ carId: Number(id), startDate: '', endDate: '' });
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Booking failed');
+    const errorMsg = err.response?.data?.message || err.message || 'Booking failed';
+    alert(errorMsg);
     } finally {
       setBookingLoading(false);
-    }
+    } 
   };
 
   if (loading) return <Loading />;
