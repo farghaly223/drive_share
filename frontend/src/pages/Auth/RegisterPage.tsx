@@ -69,7 +69,7 @@ const RegisterPage = () => {
             <option value="owner">Owner</option>
           </select>
         </div>
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading}>**
           {loading ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
