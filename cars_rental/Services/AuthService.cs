@@ -153,7 +153,12 @@ namespace cars_rental.Service
             Email = user.Email,
             Role = user.Role,
             AccountStatus = user.AccountStatus,
-            IsLicenseVerified = user.IsLicenseVerified
+            IsLicenseVerified = user.IsLicenseVerified,
+
+            // ✅ ADD THESE
+            IsSuspended = user.IsSuspended,
+            CanAddCars = user.CanAddCars,
+            CanRentCars = user.CanRentCars
         };
 
         public int? GetUserIdFromToken(string token)

@@ -65,4 +65,9 @@ public class UserInfoDto
     /// هل تم التحقق من رخصة القيادة / License Verification Status
     /// </summary>
     public bool? IsLicenseVerified { get; set; }
+
+        // ✅ ADD THESE
+    public bool IsSuspended { get; set; }
+    public bool CanAddCars { get; set; }
+    public bool CanRentCars { get; set; }
 }
