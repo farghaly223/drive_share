@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+
 namespace cars_rental.Controllers
 {
     [Route("api/[controller]")]
@@ -16,7 +17,7 @@ namespace cars_rental.Controllers
 
         [Authorize(Roles = "owner")]
         [HttpPost]
-        public async Task<IActionResult>AddCar(CarCreateUpdateDto dto)
+        public async Task<IActionResult> AddCar(CarCreateUpdateDto dto) // ✅ Fixed
         {
             var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var message = await _carsService.AddCarAsync(ownerId, dto);
@@ -61,7 +62,7 @@ namespace cars_rental.Controllers
 
         [Authorize(Roles = "owner")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCar(int id, [FromBody] CarCreateUpdateDto carDto)
+        public async Task<IActionResult> UpdateCar(int id, [FromBody] CarCreateUpdateDto carDto) // ✅ Fixed
         {
             var ownerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -75,6 +76,5 @@ namespace cars_rental.Controllers
 
             return Ok(result.Message);
         }
-
     }
 }

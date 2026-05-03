@@ -1,4 +1,5 @@
-﻿using cars_rental.Service;
+﻿using cars_rental.DTOs;
+using cars_rental.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,6 +33,32 @@ public class AdminController : ControllerBase
     {
         var result = await _adminService.VerifyLicenseAsync(id, approve);
         if (!result.Success) return NotFound(result.Message);
+        return Ok(new { message = result.Message });
+    }
+
+    // ✅ Granular permission control
+    // PATCH /api/admin/permissions/5
+    // Send only the fields you want to change:
+    //
+    // Block only car posting (owner):
+    // { "canAddCars": false }
+    //
+    // Block only renting (renter):
+    // { "canRentCars": false }
+    //
+    // Full account suspension:
+    // { "isSuspended": true }
+    //
+    // Block everything at once:
+    // { "isSuspended": true, "canAddCars": false, "canRentCars": false }
+    //
+    // Restore everything:
+    // { "isSuspended": false, "canAddCars": true, "canRentCars": true }
+    [HttpPatch("permissions/{id}")]
+    public async Task<IActionResult> UpdatePermissions(int id, [FromBody] UpdatePermissionsDto dto)
+    {
+        var result = await _adminService.UpdateUserPermissionsAsync(id, dto);
+        if (!result.Success) return BadRequest(new { message = result.Message });
         return Ok(new { message = result.Message });
     }
 }

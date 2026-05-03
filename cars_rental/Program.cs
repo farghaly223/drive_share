@@ -57,7 +57,7 @@ builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RoleNormalizationService>(); // ✅ Add role normalization service
 
-// 🔥 تسجيل خدمات الأدمن لحل مشكلة الـ 500
+
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 

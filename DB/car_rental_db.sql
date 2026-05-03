@@ -5,7 +5,7 @@ CREATE TABLE Users (
     email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('admin', 'owner', 'renter') NOT NULL,
-    account_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    account_status ENUM('pending', 'approved', 'rejected' , ) DEFAULT 'pending',
     driver_license_url VARCHAR(255), -- مخصص للمستأجر فقط
     is_license_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -131,6 +131,18 @@ VALUES
 ('hanen ', 'renter@cars.com', 'password123', 'renter', 'approved', TRUE);
 
 
+ALTER TABLE Users 
+MODIFY COLUMN account_status ENUM('pending', 'approved', 'rejected', 'suspended') DEFAULT 'pending';
 
 
-84cc3f0809060dbe1e4f005f0a5533486fbfc998
+UPDATE Users 
+SET can_post_cars = 1, 
+    can_request_booking = 1, 
+    is_banned = 0 
+WHERE can_post_cars IS NULL;
+
+ALTER TABLE Users 
+MODIFY COLUMN can_post_cars TINYINT(1) NOT NULL DEFAULT 1,
+MODIFY COLUMN can_request_booking TINYINT(1) NOT NULL DEFAULT 1,
+MODIFY COLUMN is_banned TINYINT(1) NOT NULL DEFAULT 0;
+8cc3f0809060dbe1e4f005f0a5533486fbfc998

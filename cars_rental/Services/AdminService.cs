@@ -69,5 +69,40 @@ namespace cars_rental.Service
             await _repository.SaveChangesAsync();
             return (true, approve ? "License Approved" : "License Rejected");
         }
+
+        // ✅ Granular permission control
+        public async Task<(bool Success, string Message)> UpdateUserPermissionsAsync(int id, UpdatePermissionsDto dto)
+        {
+            var user = await _repository.GetUserByIdAsync(id);
+            if (user == null) return (false, "User not found");
+
+            if (user.Role == "admin") return (false, "Cannot modify permissions of an admin account");
+
+            var changes = new List<string>();
+
+            // Only update fields that were explicitly sent (not null)
+            if (dto.IsSuspended.HasValue)
+            {
+                user.IsSuspended = dto.IsSuspended.Value;
+                changes.Add(dto.IsSuspended.Value ? "Account suspended" : "Account unsuspended");
+            }
+
+            if (dto.CanAddCars.HasValue)
+            {
+                user.CanAddCars = dto.CanAddCars.Value;
+                changes.Add(dto.CanAddCars.Value ? "Car posting restored" : "Car posting blocked");
+            }
+
+            if (dto.CanRentCars.HasValue)
+            {
+                user.CanRentCars = dto.CanRentCars.Value;
+                changes.Add(dto.CanRentCars.Value ? "Car renting restored" : "Car renting blocked");
+            }
+
+            if (!changes.Any()) return (false, "No permission changes were provided");
+
+            await _repository.SaveChangesAsync();
+            return (true, $"Permissions updated for '{user.Name}': {string.Join(", ", changes)}");
+        }
     }
 }

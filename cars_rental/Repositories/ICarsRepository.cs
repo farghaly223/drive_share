@@ -11,6 +11,7 @@ namespace cars_rental.Repository
         Task<IEnumerable<Car>> GetCarsByOwnerIdAsync(int ownerId);
         Task<Car> GetCarByIdAsync(int carId);
         Task UpdateCarAsync(Car car);
+        Task<User?> GetUserByIdAsync(int id);
         Task SaveChangesAsync();
     }
 }

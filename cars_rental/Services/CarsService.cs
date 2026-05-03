@@ -11,6 +11,16 @@ namespace cars_rental.Service
 
         public async Task<string> AddCarAsync(int ownerId, CarCreateUpdateDto dto)
         {
+            var owner = await _repository.GetUserByIdAsync(ownerId);
+            if (owner == null) return "Owner not found";
+
+            // ✅ Check total suspension first, then specific permission
+            if (owner.IsSuspended)
+                return "Your account has been suspended. Contact admin for support.";
+
+            if (!owner.CanAddCars)
+                return "You are not allowed to add new car listings. Contact admin for support.";
+
             var car = new Car
             {
                 Title = dto.Title,
@@ -23,10 +33,11 @@ namespace cars_rental.Service
                 Location = dto.Location,
                 RentalPrice = dto.RentalPrice,
                 OwnerId = ownerId,
-                RentalStatus = "available", 
+                RentalStatus = "available",
                 PostStatus = "pending",
                 AvailabilityCalendar = dto.AvailabilityCalendar
             };
+
             await _repository.AddAsync(car);
             await _repository.SaveChangesAsync();
             return "Car post created and pending admin approval";
@@ -37,7 +48,7 @@ namespace cars_rental.Service
             var car = await _repository.GetByIdAsync(id);
             if (car == null) return (false, "Car post not found");
 
-            car.PostStatus = approve ? "approved" : "rejected"; 
+            car.PostStatus = approve ? "approved" : "rejected";
             await _repository.SaveChangesAsync();
             return (true, approve ? "Car post approved" : "Car post rejected");
         }
@@ -46,17 +57,16 @@ namespace cars_rental.Service
         {
             var car = await _repository.GetByIdWithBookingsAsync(carId);
             if (car == null) return (false, "Not Found", 404);
-
             if (car.OwnerId != currentUserId) return (false, "Forbidden", 403);
 
-            
             if (car.Bookings.Any(b => b.Status == "Accepted"))
-                return (false, "Car Owner cannot delete a car post if the car is currently rented.", 400);
+                return (false, "Cannot delete a car that is currently rented.", 400);
 
             _repository.Delete(car);
             await _repository.SaveChangesAsync();
             return (true, "Deleted", 204);
         }
+
         public async Task<IEnumerable<Car>> GetCarsByOwnerIdAsync(int ownerId)
         {
             return await _repository.GetCarsByOwnerIdAsync(ownerId);
@@ -65,7 +75,6 @@ namespace cars_rental.Service
         public async Task<(bool Success, string Message)> UpdateCarAsync(int ownerId, int carId, CarCreateUpdateDto carDto)
         {
             var car = await _repository.GetCarByIdAsync(carId);
-
             if (car == null) return (false, "Car not found");
             if (car.OwnerId != ownerId) return (false, "Unauthorized to update this car");
 

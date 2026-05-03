@@ -30,6 +30,10 @@ namespace cars_rental.Repository
             _context.Cars.Update(car);
             await _context.SaveChangesAsync();
         }
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _context.Users.FindAsync(id);
+        }
     }
 
 
