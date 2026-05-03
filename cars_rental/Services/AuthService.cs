@@ -65,7 +65,7 @@ namespace cars_rental.Service
                     Email = dto.Email.ToLower(),
                     Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                     Role = dto.Role.ToLower(),
-                    AccountStatus = dto.Role.ToLower() == "admin" ? "approved" : "pending",
+                    AccountStatus = dto.Role.ToLower() is "admin" or "renter" ? "approved" : "pending",
                     CreatedAt = DateTime.UtcNow,
                     IsLicenseVerified = dto.Role.ToLower() == "admin"
                 };
@@ -98,7 +98,12 @@ namespace cars_rental.Service
 
                 if (user.AccountStatus != "approved")
                     return new AuthResponseDto { Success = false, Message = $"حسابك غير مفعل حالياً (الحالة: {user.AccountStatus})" };
-
+                if (user.IsSuspended)
+                  return new AuthResponseDto
+                      {
+                         Success = false,
+                          Message = "Your credentials are correct, but your account is suspended. Please contact support."
+                      };
                 user.Role = (user.Role ?? "renter").ToLower().Trim();
 
                 var token = GenerateJwtToken(user);
