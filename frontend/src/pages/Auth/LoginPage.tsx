@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { getErrorMessage } from '../../utils/helpers';
 import ErrorAlert from '../../components/common/ErrorAlert';
 
 const LoginPage = () => {
@@ -17,8 +18,14 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const userData = await login(email, password);
-      console.log('🔍 Login userData:', userData);
-      console.log('🔍 Role from login:', userData.role);
+      
+      // 🚫 If account is suspended, redirect immediately
+      if (userData.isSuspended) {
+        navigate('/suspended');
+        return;
+      }
+
+      // Role‑based redirect
       if (userData.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (userData.role === 'owner') {
@@ -26,8 +33,8 @@ const LoginPage = () => {
       } else {
         navigate('/browse');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

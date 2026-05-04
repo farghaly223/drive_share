@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { carsApi } from '../../services/carsApi';
 import { browsingApi } from '../../services/browsingApi';
 import type { CarCreateUpdateDto } from '../../types';
 import Loading from '../../components/common/Loading';
+import { useAuth } from '../../hooks/useAuth';
 
 const CarFormPage = () => {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const { canAddCars } = useAuth();
+  if (!canAddCars) {
+    return <Navigate to="/cars/manage" replace />;
+  }
   const [form, setForm] = useState<CarCreateUpdateDto>({
     title: '',
     description: '',

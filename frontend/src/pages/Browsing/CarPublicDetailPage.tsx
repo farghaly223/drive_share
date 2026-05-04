@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import type { CarListingDTO, BookingDto } from '../../types';
 import Loading from '../../components/common/Loading';
 import ErrorAlert from '../../components/common/ErrorAlert';
+import { getErrorMessage } from '../../utils/helpers';
 
 const CarPublicDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,87 +19,75 @@ const CarPublicDetailPage = () => {
     endDate: '',
   });
   const [bookingLoading, setBookingLoading] = useState(false);
-  const { isAuthenticated, isRenter } = useAuth();
+  const [bookingError, setBookingError] = useState('');
+
+  const { isAuthenticated, isRenter, canRentCars } = useAuth();
   const navigate = useNavigate();
 
+  // 🔍 TEMPORARY – shows the actual permission value in console
   useEffect(() => {
-    browsingApi.getById(Number(id))
+    console.log('🔍 car detail – canRentCars:', canRentCars, 'isRenter:', isRenter);
+  }, [canRentCars, isRenter]);
+
+  useEffect(() => {
+    browsingApi
+      .getById(Number(id))
       .then((res) => setCar(res.data))
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
   }, [id]);
+
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
+    if (!canRentCars) {
+      setBookingError("You don't have permission to rent cars. Please contact the admin.");
+      return;
+    }
+
+    setBookingError('');
     setBookingLoading(true);
     try {
       await bookingApi.request(booking);
       alert('Booking request sent!');
       setBooking({ carId: Number(id), startDate: '', endDate: '' });
-    } catch (err: any) {
-    const errorMsg = err.response?.data?.message || err.message || 'Booking failed';
-    alert(errorMsg);
+    } catch (err) {
+      setBookingError(getErrorMessage(err));
     } finally {
       setBookingLoading(false);
-    } 
+    }
   };
 
   if (loading) return <Loading />;
   if (error) return <ErrorAlert message={error} />;
   if (!car) return <p>Car not found</p>;
 
-  const statusClass = car.rentalStatus?.toLowerCase() === 'available' ? 'status-available' : 'status-rented';
+  const canBook =
+    car.rentalStatus?.toLowerCase() !== 'pending' &&
+    car.rentalStatus?.toLowerCase() !== 'rejected';
 
   return (
     <div className="car-detail">
-      <div className="car-detail-header">
-        <h2>{car.title}</h2>
-        <span className={`status-badge ${statusClass}`}>{car.rentalStatus}</span>
-      </div>
-
+      <h2>{car.title}</h2>
       <img
-        className="car-detail-image"
         src={car.mainImageUrl || '/placeholder-car.jpg'}
         alt={car.title}
+        style={{ maxWidth: '400px' }}
       />
+      <p><strong>Owner:</strong> {car.ownerName}</p>
+      <p><strong>Description:</strong> {car.description}</p>
+      <p><strong>Type:</strong> {car.carType}</p>
+      <p><strong>Brand/Model:</strong> {car.brand} {car.model} ({car.year})</p>
+      <p><strong>Transmission:</strong> {car.transmission}</p>
+      <p><strong>Location:</strong> {car.location}</p>
+      <p><strong>Price per day:</strong> ${car.rentalPrice}</p>
+      <p><strong>Status:</strong> {car.rentalStatus}</p>
 
-      <div className="car-detail-grid">
-        <div className="car-detail-item">
-          <div className="label">Owner</div>
-          <div className="value">{car.ownerName}</div>
-        </div>
-        <div className="car-detail-item">
-          <div className="label">Car Type</div>
-          <div className="value">{car.carType}</div>
-        </div>
-        <div className="car-detail-item">
-          <div className="label">Brand / Model</div>
-          <div className="value">{car.brand} {car.model} ({car.year})</div>
-        </div>
-        <div className="car-detail-item">
-          <div className="label">Transmission</div>
-          <div className="value">{car.transmission}</div>
-        </div>
-        <div className="car-detail-item">
-          <div className="label">Location</div>
-          <div className="value">{car.location}</div>
-        </div>
-        <div className="car-detail-item">
-          <div className="label">Price per day</div>
-          <div className="car-detail-price">${car.rentalPrice}<span>/day</span></div>
-        </div>
-      </div>
-
-      {car.description && (
-        <div style={{ marginBottom: '2rem' }}>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>{car.description}</p>
-        </div>
-      )}
-
-      {isRenter && car.rentalStatus === 'Available' && (
+      {/* ✅ Booking form ONLY if renter, car is bookable, and permission is true */}
+      {isRenter && canBook && canRentCars && (
         <div className="booking-form">
           <h3>Request Rental</h3>
           <form onSubmit={handleBookingSubmit}>
@@ -121,18 +110,24 @@ const CarPublicDetailPage = () => {
               />
             </div>
             <button type="submit" disabled={bookingLoading}>
-              {bookingLoading ? 'Sending request...' : 'Request Booking'}
+              {bookingLoading ? 'Sending...' : 'Request Booking'}
             </button>
           </form>
+          {bookingError && <ErrorAlert message={bookingError} onDismiss={() => setBookingError('')} />}
         </div>
       )}
 
+      {/* ✅ Message when renter but permission is revoked */}
+      {isRenter && !canRentCars && (
+        <p style={{ color: '#856404', backgroundColor: '#fff3cd', padding: '0.75rem', borderRadius: '4px', marginTop: '1rem' }}>
+          You do not have permission to rent cars. Please contact the admin.
+        </p>
+      )}
+
       {!isAuthenticated && (
-        <div className="booking-form">
-          <p style={{ margin: 0 }}>
-            <Link to="/login">Login</Link> to book this car.
-          </p>
-        </div>
+        <p>
+          <Link to="/login">Login</Link> to book this car.
+        </p>
       )}
     </div>
   );

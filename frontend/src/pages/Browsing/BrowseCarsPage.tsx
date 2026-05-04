@@ -47,7 +47,7 @@ const BrowseCarsPage = () => {
     fetchCars();
   };
 
-  const getStatusClass = (status: string) => {
+  const getStatusClass = (status?: string) => {
     const s = status?.toLowerCase();
     if (s === 'available') return 'status-available';
     if (s === 'rented') return 'status-rented';

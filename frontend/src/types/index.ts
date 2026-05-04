@@ -25,6 +25,9 @@ export interface AuthResponse {
   role: string;
   userId: number;
   isLicenseVerified?: boolean;
+  isSuspended: boolean;
+  canAddCars: boolean;
+  canRentCars: boolean;
 }
 
 // ==================== Car ====================
@@ -103,4 +106,31 @@ export interface WeatherForecast {
   temperatureC: number;
   temperatureF: number;
   summary?: string;
+}
+
+export interface UserWithPermissions {
+  id: number;
+  email: string;
+  role: string;
+  canAddCars: boolean;
+  canRentCars: boolean;
+  isSuspended: boolean;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    accountStatus: string;
+    isLicenseVerified: boolean;
+    isSuspended: boolean;
+    canAddCars: boolean;
+    canRentCars: boolean;
+  };
+  expiresIn: number;
 }

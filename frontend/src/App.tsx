@@ -15,6 +15,7 @@ import CarFormPage from './pages/Cars/CarFormPage';
 import MyBookingsPage from './pages/Bookings/MyBookingsPage';
 import BookingRequestsPage from './pages/Bookings/BookingRequestsPage';
 import ProfilePage from './pages/Profile/ProfilePage';
+import SuspendedPage from './pages/Suspended/SuspendedPage';
 
 const HomeRedirect = () => {
   const { user, isAuthenticated } = useAuth();
@@ -36,6 +37,7 @@ function App() {
             <Route path="register" element={<RegisterPage />} />
             <Route path="browse" element={<BrowseCarsPage />} />
             <Route path="browse/:id" element={<CarPublicDetailPage />} />
+            <Route path="suspended" element={<SuspendedPage />} />
 
             {/* Protected routes */}
             <Route element={<PrivateRoute />}>

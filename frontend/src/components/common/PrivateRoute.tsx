@@ -6,7 +6,7 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, user, loading, isSuspended } = useAuth();
 
   if (loading) return <div>Loading...</div>;
 
@@ -14,13 +14,18 @@ const PrivateRoute = ({ allowedRoles }: PrivateRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && user) {
-  const userRoleLower = user.role.toLowerCase();
-  const allowedLower = allowedRoles.map(r => r.toLowerCase());
-  if (!allowedLower.includes(userRoleLower)) {
-    return <Navigate to="/" replace />;
+  // If suspended, redirect to suspended page (regardless of role)
+  if (isSuspended) {
+    return <Navigate to="/suspended" replace />;
   }
-}
+
+  if (allowedRoles && user) {
+    const userRoleLower = user.role.toLowerCase();
+    const allowedLower = allowedRoles.map(r => r.toLowerCase());
+    if (!allowedLower.includes(userRoleLower)) {
+      return <Navigate to="/" replace />;
+    }
+  }
 
   return <Outlet />;
 };

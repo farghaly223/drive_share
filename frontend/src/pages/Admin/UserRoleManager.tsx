@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
 import { authApi } from '../../services/authApi';
+import { adminApi } from '../../services/adminApi';
 import Loading from '../../components/common/Loading';
 import ErrorAlert from '../../components/common/ErrorAlert';
-
-interface User {
-  id: number;
-  email: string;
-  role: string;
-}
+import type { UserWithPermissions } from '../../types';
+import { getErrorMessage } from '../../utils/helpers';
 
 const UserRoleManager = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserWithPermissions[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState<number | null>(null);
@@ -18,10 +15,18 @@ const UserRoleManager = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError('');
       const usersData = await authApi.getAllUsers();
-      setUsers(usersData);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch users');
+      // Ensure permissions fields exist; default to false if missing
+      const sanitized = usersData.map(u => ({
+        ...u,
+        canAddCars: u.canAddCars ?? false,
+        canRentCars: u.canRentCars ?? false,
+        isSuspended: u.isSuspended ?? false,
+      }));
+      setUsers(sanitized);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -31,14 +36,44 @@ const UserRoleManager = () => {
     fetchUsers();
   }, []);
 
+  const handlePermissionToggle = async (userId: number, field: keyof UserWithPermissions) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    const newValue = !user[field];
+    const updatedPermissions = {
+      isSuspended: field === 'isSuspended' ? newValue : user.isSuspended,
+      canAddCars: field === 'canAddCars' ? newValue : user.canAddCars,
+      canRentCars: field === 'canRentCars' ? newValue : user.canRentCars,
+    };
+
+    setUpdating(userId);
+    try {
+      await adminApi.updateUserPermissions(userId, updatedPermissions);
+
+      // Optimistic update
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, ...updatedPermissions } : u
+        )
+      );
+    } catch (err) {
+      alert('Permission update failed: ' + getErrorMessage(err));
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   const handleRoleChange = async (userId: number, newRole: string) => {
     if (!window.confirm(`Change user ${userId} role to ${newRole}?`)) return;
     setUpdating(userId);
     try {
       await authApi.updateUserRole(userId, newRole);
-      await fetchUsers();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update role');
+      setUsers(prev =>
+        prev.map(u => (u.id === userId ? { ...u, role: newRole } : u))
+      );
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setUpdating(null);
     }
@@ -49,66 +84,64 @@ const UserRoleManager = () => {
 
   return (
     <div>
-      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.1rem', margin: 0 }}>User Role Management</h2>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{users.length} users</span>
-      </div>
-
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Email</th>
-              <th>Current Role</th>
-              <th>Change Role</th>
+      <h2>User Role & Permission Management</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Change Role</th>
+            <th>Suspended</th>
+            <th>Can Add Cars</th>
+            <th>Can Rent Cars</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map(user => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.email}</td>
+              <td>{user.role}</td>
+              <td>
+                <select
+                  value={user.role}
+                  onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                  disabled={updating === user.id}
+                >
+                  <option value="renter">Renter</option>
+                  <option value="owner">Owner</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </td>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={user.isSuspended}
+                  onChange={() => handlePermissionToggle(user.id, 'isSuspended')}
+                  disabled={updating === user.id}
+                />
+              </td>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={user.canAddCars}
+                  onChange={() => handlePermissionToggle(user.id, 'canAddCars')}
+                  disabled={updating === user.id}
+                />
+              </td>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={user.canRentCars}
+                  onChange={() => handlePermissionToggle(user.id, 'canRentCars')}
+                  disabled={updating === user.id}
+                />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{user.id}</td>
-                <td><strong>{user.email}</strong></td>
-                <td>
-                  <span className={`status-badge ${
-                    user.role === 'admin' ? 'status-completed' :
-                    user.role === 'owner' ? 'status-accepted' :
-                    'status-pending'
-                  }`} style={{ textTransform: 'capitalize' }}>
-                    {user.role}
-                  </span>
-                </td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      disabled={updating === user.id}
-                      style={{
-                        padding: '0.4rem 0.7rem',
-                        background: 'var(--bg-elevated)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius-sm)',
-                        color: 'var(--text-primary)',
-                        fontFamily: 'DM Sans, sans-serif',
-                        fontSize: '0.825rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <option value="renter">Renter</option>
-                      <option value="owner">Owner</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    {updating === user.id && (
-                      <span style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>Updating...</span>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

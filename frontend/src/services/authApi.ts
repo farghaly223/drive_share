@@ -1,9 +1,9 @@
 import api from './api';
-import type { UserRegisterDto, UserLoginDto, AuthResponse } from '../types';
+import type { UserRegisterDto, UserLoginDto, LoginResponse , UserWithPermissions} from '../types'
 
 export const authApi = {
   register: (data: UserRegisterDto) => api.post('/Auth/register', data),
-  login: (data: UserLoginDto) => api.post<AuthResponse>('/Auth/login', data),
+  login: (data: UserLoginDto) => api.post<LoginResponse>('/Auth/login', data),
   me: () => api.get('/Auth/me'),
   adminOnly: () => api.get('/Auth/admin-only'),
   ownerAccess: () => api.get('/Auth/owner-access'),
@@ -18,10 +18,10 @@ export const authApi = {
     }),
 
   // Convenience wrapper for getting all users from debug/roles
-  getAllUsers: async () => {
-    const res = await api.get('/Auth/debug/roles');
-    return res.data.users; // array of { id, email, role }
-  },
+  getAllUsers: async (): Promise<UserWithPermissions[]> => {
+  const res = await api.get('/Auth/debug/roles');
+  return res.data.users;
+},
 
   // Alias for updateRole
   updateUserRole: (userId: number, role: string) =>

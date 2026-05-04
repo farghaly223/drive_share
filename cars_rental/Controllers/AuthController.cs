@@ -95,22 +95,23 @@ namespace cars_rental.Controllers
         /// <response code="200">المستخدم مصرح له / User is authorized</response>
         /// <response code="401">غير مصرح / Unauthorized</response>
         [HttpGet("me")]
-        [Authorize] // يتطلب تسجيل دخول / Requires authentication
-        public IActionResult GetCurrentUser()
+        [Authorize]
+        public IActionResult GetCurrentUser([FromServices] CarRentalDbContext dbContext)
         {
-            // الحصول على معرف المستخدم من Token / Get user ID from token claims
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             var nameClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Name);
             var emailClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Email);
             var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
 
-            // Debug: Also check custom claim names
-            var customRoleClaim = User.FindFirst("role");
-
             if (userIdClaim == null)
             {
                 return Unauthorized(new { message = "لم يتم العثور على معرف المستخدم / User ID not found" });
             }
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            // ✅ Declare the user variable
+            var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
 
             return Ok(new
             {
@@ -118,7 +119,12 @@ namespace cars_rental.Controllers
                 name = nameClaim?.Value,
                 email = emailClaim?.Value,
                 role = roleClaim?.Value,
-                customRole = customRoleClaim?.Value,
+
+                // New permission fields – user is now defined
+                isSuspended = user?.IsSuspended ?? false,
+                canAddCars = user?.CanAddCars ?? false,
+                canRentCars = user?.CanRentCars ?? false,
+
                 allClaims = User.Claims.Select(c => new { type = c.Type, value = c.Value }).ToList(),
                 message = "✅ Current user information with all claims"
             });
@@ -159,7 +165,7 @@ namespace cars_rental.Controllers
         {
             try
             {
-                var users = dbContext.Users.Select(u => new { u.Id, u.Email, u.Role }).ToList();
+                var users = dbContext.Users.Select(u => new { u.Id, u.Email, u.Role, u.CanAddCars, u.CanRentCars, u.IsSuspended }).ToList();
 
                 return Ok(new
                 {
