@@ -1,4 +1,6 @@
 using cars_rental.Handlers;
+using cars_rental.Hubs;
+using cars_rental.Services;
 using cars_rental.Interfaces;
 using cars_rental.Middleware;
 using cars_rental.Models;
@@ -57,8 +59,8 @@ builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RoleNormalizationService>(); // ✅ Add role normalization service
 builder.Services.AddSignalR();
-//builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-//builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
@@ -100,7 +102,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddCors(options => { options.AddPolicy("AllowAll", policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()); });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .WithOrigins("http://localhost:5173", "https://localhost:5173") // Vite dev server
+              .AllowCredentials()); // Required for SignalR WebSockets
+});
 
 var app = builder.Build();
 
@@ -131,7 +140,7 @@ catch (Exception ex)
 // 🔥 الترتيب ده حاسم جداً - زي الكود اللي بعته بالظبط
 app.UseAuthentication(); // ✅ AddJwtBearer validates JWT and populates User with claims
 app.UseAuthorization();  // ✅ Check roles & permissions (User is fully authenticated)
-//app.MapHub<cars_rental.Hubs.NotificationHub>("/notificationHub");
+app.MapHub<cars_rental.Hubs.NotificationHub>("/notificationHub");
 
 // ❌ Removed JwtValidationMiddleware for stability
 

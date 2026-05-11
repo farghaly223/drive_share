@@ -1,20 +1,26 @@
-﻿using cars_rental.DTOs;
+using cars_rental.DTOs;
 using cars_rental.Models;
 using cars_rental.Repository;
+using cars_rental.Services;
 
 namespace cars_rental.Service
 {
     public class BookingService : IBookingService
     {
         private readonly IBookingRepository _repository;
-        public BookingService(IBookingRepository repository) => _repository = repository;
+        private readonly INotificationService _notifications;
+
+        public BookingService(IBookingRepository repository, INotificationService notifications)
+        {
+            _repository = repository;
+            _notifications = notifications;
+        }
 
         public async Task<(bool Success, string Message)> CreateRentalRequestAsync(int userId, BookingDto request)
         {
             var user = await _repository.GetUserByIdAsync(userId);
             if (user == null) return (false, "User not found");
 
-            // ✅ Check total suspension first, then specific permission
             if (user.IsSuspended)
                 return (false, "Your account has been suspended. Contact admin for support.");
 
@@ -48,6 +54,12 @@ namespace cars_rental.Service
             await _repository.AddBookingAsync(booking);
             await _repository.SaveChangesAsync();
 
+            // Notify the car owner about the new rental request
+            await _notifications.SendNotificationAsync(
+                car.OwnerId,
+                $"New rental request for your car \"{car.Title}\" - Total: {totalPrice} EGP"
+            );
+
             return (true, $"Rental request sent successfully. Total price: {totalPrice}");
         }
 
@@ -61,6 +73,14 @@ namespace cars_rental.Service
             if (accept) booking.Car.RentalStatus = "rented";
 
             await _repository.SaveChangesAsync();
+
+            // Notify the renter of the owner's decision
+            var statusText = accept ? "accepted" : "rejected";
+            await _notifications.SendNotificationAsync(
+                booking.RenterId,
+                $"Your rental request for \"{booking.Car.Title}\" has been {statusText}"
+            );
+
             return (true, $"Booking has been {booking.Status}", 200);
         }
 
@@ -73,6 +93,13 @@ namespace cars_rental.Service
             booking.Car.RentalStatus = "available";
 
             await _repository.SaveChangesAsync();
+
+            // Notify the renter that the rental is complete
+            await _notifications.SendNotificationAsync(
+                booking.RenterId,
+                $"Your rental of \"{booking.Car.Title}\" is now complete. You can leave a review!"
+            );
+
             return (true, "Rental completed. Renter can now leave feedback.");
         }
 
