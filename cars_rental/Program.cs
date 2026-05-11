@@ -109,7 +109,7 @@ builder.Services.AddCors(options =>
               .AllowCredentials()); // Required for SignalR WebSockets
     options.AddPolicy("ReactPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // @abdo  متنساش تحط  react URL here 
+        policy.WithOrigins("http://localhost:3000") // @abdo  متنساش تحط  react URL here edited 
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials(); 
@@ -124,7 +124,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("ReactPolicy");
 app.UseHttpsRedirection();
 
 
@@ -146,8 +146,7 @@ catch (Exception ex)
 app.UseAuthentication(); // ✅ AddJwtBearer validates JWT and populates User with claims
 app.UseAuthorization();  // ✅ Check roles & permissions (User is fully authenticated)
 app.MapHub<cars_rental.Hubs.NotificationHub>("/notificationHub");
-app.UseAuthentication(); 
-app.UseAuthorization();  
+
 
 
 
