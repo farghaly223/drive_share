@@ -56,6 +56,11 @@ builder.Services.AddDbContext<CarRentalDbContext>(options =>
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<RoleNormalizationService>(); // ✅ Add role normalization service
+builder.Services.AddSignalR();
+//builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+//builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
@@ -126,6 +131,7 @@ catch (Exception ex)
 // 🔥 الترتيب ده حاسم جداً - زي الكود اللي بعته بالظبط
 app.UseAuthentication(); // ✅ AddJwtBearer validates JWT and populates User with claims
 app.UseAuthorization();  // ✅ Check roles & permissions (User is fully authenticated)
+//app.MapHub<cars_rental.Hubs.NotificationHub>("/notificationHub");
 
 // ❌ Removed JwtValidationMiddleware for stability
 
