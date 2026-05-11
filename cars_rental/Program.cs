@@ -109,6 +109,7 @@ builder.Services.AddCors(options =>
               .AllowCredentials()); // Required for SignalR WebSockets
     options.AddPolicy("ReactPolicy", policy =>
     {
+        policy.WithOrigins("http://localhost:3001") // @abdo  متنساش تحط  react URL here edited 
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials(); 
