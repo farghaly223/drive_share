@@ -54,7 +54,7 @@ public partial class CarRentalDbContext : DbContext
 
             entity.HasOne(d => d.Car).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.CarId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("bookings_ibfk_1");
 
             entity.HasOne(d => d.Renter).WithMany(p => p.Bookings)

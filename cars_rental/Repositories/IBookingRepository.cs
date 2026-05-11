@@ -11,5 +11,6 @@ namespace cars_rental.Repository
             Task SaveChangesAsync();
             Task<IEnumerable<Booking>> GetBookingsByRenterIdAsync(int renterId);
             Task<IEnumerable<Booking>> GetBookingsByOwnerIdAsync(int ownerId);
+            Task<bool> HasOverlappingBookingAsync(int carId, DateOnly start, DateOnly end);
     }
 }

@@ -29,5 +29,14 @@ namespace cars_rental.Repository
                 .ToListAsync();
         }
 
+        public async Task<bool> HasOverlappingBookingAsync(int carId, DateOnly start, DateOnly end)
+{
+    return await _context.Bookings.AnyAsync(b => 
+        b.CarId == carId &&
+        b.Status != "rejected" && // Ignore rejected requests
+        start < b.EndDate && 
+        end > b.StartDate);
+}
+
     }
 }

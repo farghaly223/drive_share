@@ -17,51 +17,64 @@ namespace cars_rental.Service
         }
 
         public async Task<(bool Success, string Message)> CreateRentalRequestAsync(int userId, BookingDto request)
-        {
-            var user = await _repository.GetUserByIdAsync(userId);
-            if (user == null) return (false, "User not found");
+{
+    // 1. Validate User
+    var user = await _repository.GetUserByIdAsync(userId);
+    if (user == null) return (false, "User not found.");
 
-            if (user.IsSuspended)
-                return (false, "Your account has been suspended. Contact admin for support.");
+    if (user.IsSuspended)
+        return (false, "Your account has been suspended.");
 
-            if (!user.CanRentCars)
-                return (false, "You are not allowed to make rental requests. Contact admin for support.");
+    if (!user.CanRentCars)
+        return (false, "You are not authorized to rent cars.");
 
-            if (user.IsLicenseVerified != true)
-                return (false, "Your license is still under review.");
+    if (user.IsLicenseVerified != true)
+        return (false, "Your driver's license is not yet verified.");
 
-            var car = await _repository.GetCarByIdAsync(request.CarId);
-            if (car == null || car.PostStatus != "approved")
-                return (false, "Car is not available for rental.");
+    // 2. Validate Car
+    var car = await _repository.GetCarByIdAsync(request.CarId);
+    if (car == null || car.PostStatus != "approved")
+        return (false, "Car is not available for rental.");
 
-            var days = request.EndDate.DayNumber - request.StartDate.DayNumber;
-            if (days <= 0)
-                return (false, "End date must be after start date.");
+    // 3. Validate Dates & Calculate Duration
+    if (request.StartDate < DateOnly.FromDateTime(DateTime.Now))
+        return (false, "Start date cannot be in the past.");
 
-            decimal totalPrice = (decimal)days * (car.RentalPrice ?? 0m);
+    var days = request.EndDate.DayNumber - request.StartDate.DayNumber;
+    if (days <= 0)
+        return (false, "Rental duration must be at least one day.");
 
-            var booking = new Booking
-            {
-                CarId = request.CarId,
-                RenterId = userId,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
-                TotalPrice = totalPrice,
-                Status = "pending",
-                CreatedAt = DateTime.Now
-            };
+    // 4. CRITICAL: Check for Overlapping Bookings
+    // This checks if any existing 'accepted' or 'pending' booking conflicts with the new dates
+    var isOverlap = await _repository.HasOverlappingBookingAsync(request.CarId, request.StartDate, request.EndDate);
+    if (isOverlap)
+        return (false, "The car is already booked for these dates.");
 
-            await _repository.AddBookingAsync(booking);
-            await _repository.SaveChangesAsync();
+    // 5. Calculate Price and Create Booking
+    decimal totalPrice = (decimal)days * (car.RentalPrice ?? 0m);
 
-            // Notify the car owner about the new rental request
-            await _notifications.SendNotificationAsync(
-                car.OwnerId,
-                $"New rental request for your car \"{car.Title}\" - Total: {totalPrice} EGP"
-            );
+    var booking = new Booking
+    {
+        CarId = request.CarId,
+        RenterId = userId,
+        StartDate = request.StartDate,
+        EndDate = request.EndDate,
+        TotalPrice = totalPrice,
+        Status = "pending",
+        CreatedAt = DateTime.Now
+    };
 
-            return (true, $"Rental request sent successfully. Total price: {totalPrice}");
-        }
+    await _repository.AddBookingAsync(booking);
+    await _repository.SaveChangesAsync();
+
+    // 6. Notify Owner
+    await _notifications.SendNotificationAsync(
+        car.OwnerId,
+        $"New rental request for your car \"{car.Title}\" - Total: {totalPrice} EGP"
+    );
+
+    return (true, $"Rental request sent successfully. Total price: {totalPrice} EGP");
+}
 
         public async Task<(bool Success, string Message, int StatusCode)> RespondToBookingAsync(int ownerId, int bookingId, bool accept)
         {
@@ -84,7 +97,7 @@ namespace cars_rental.Service
             return (true, $"Booking has been {booking.Status}", 200);
         }
 
-        public async Task<(bool Success, string Message)> CompleteBookingAsync(int bookingId)
+        public async Task<(bool Success, string Message)> (int bookingId)
         {
             var booking = await _repository.GetBookingWithCarAsync(bookingId);
             if (booking == null) return (false, "Booking not found.");
