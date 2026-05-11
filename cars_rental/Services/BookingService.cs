@@ -130,7 +130,8 @@ namespace cars_rental.Service
                 Id = b.Id,
                 CarTitle = b.Car?.Title ?? "Unknown Car",
                 Status = b.Status,
-                TotalPrice = b.TotalPrice
+                TotalPrice = b.TotalPrice,
+                carId = b.CarId,
             });
         }
 

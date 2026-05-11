@@ -16,6 +16,7 @@ import MyBookingsPage from './pages/Bookings/MyBookingsPage';
 import BookingRequestsPage from './pages/Bookings/BookingRequestsPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import SuspendedPage from './pages/Suspended/SuspendedPage';
+import { NotificationProvider } from './context/NotificationContext'; 
 
 const HomeRedirect = () => {
   const { user, isAuthenticated } = useAuth();
@@ -30,6 +31,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <NotificationProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomeRedirect />} />
@@ -64,6 +66,7 @@ function App() {
             </Route>
           </Route>
         </Routes>
+        </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>
   );

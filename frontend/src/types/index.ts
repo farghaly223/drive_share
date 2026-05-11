@@ -117,6 +117,38 @@ export interface UserWithPermissions {
   isSuspended: boolean;
 }
 
+export interface NotificationItem {
+  id: number;
+  message: string;
+  isRead: boolean;
+  createdAt?: string;
+}
+
+export interface Review {
+  id: number;
+  renterId: number;
+  bookingId: number;
+  carId: number;
+  rating: number;
+  comment: string;
+}
+
+export interface MyBookingDTO {
+  id: number;
+  carTitle: string;
+  status: string;
+  totalPrice: number;
+  carId?: number;   // ✅ added (backend must include this)
+}
+
+export interface ReviewCreateDto {
+  bookingId: number;
+  carId: number;
+  rating: number;
+  comment: string;
+}
+
+
 export interface LoginResponse {
   success: boolean;
   message: string;

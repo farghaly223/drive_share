@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { browsingApi } from '../../services/browsingApi';
 import { bookingApi } from '../../services/bookingApi';
+import { reviewApi } from '../../services/reviewApi';  // ✅ new
 import { useAuth } from '../../hooks/useAuth';
-import type { CarListingDTO, BookingDto } from '../../types';
+import type { CarListingDTO, BookingDto, Review } from '../../types';
 import Loading from '../../components/common/Loading';
 import ErrorAlert from '../../components/common/ErrorAlert';
 import { getErrorMessage } from '../../utils/helpers';
@@ -11,6 +12,7 @@ import { getErrorMessage } from '../../utils/helpers';
 const CarPublicDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [car, setCar] = useState<CarListingDTO | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);   // ✅ new state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [booking, setBooking] = useState<BookingDto>({
@@ -24,17 +26,19 @@ const CarPublicDetailPage = () => {
   const { isAuthenticated, isRenter, canRentCars } = useAuth();
   const navigate = useNavigate();
 
-  // 🔍 TEMPORARY – shows the actual permission value in console
-  useEffect(() => {
-    console.log('🔍 car detail – canRentCars:', canRentCars, 'isRenter:', isRenter);
-  }, [canRentCars, isRenter]);
-
+  // Fetch car and its reviews
   useEffect(() => {
     browsingApi
       .getById(Number(id))
       .then((res) => setCar(res.data))
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
+
+    // Fetch reviews independently
+    reviewApi
+      .getByCar(Number(id))
+      .then((res) => setReviews(res.data))
+      .catch((err) => console.error('Could not load reviews', err));
   }, [id]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -86,7 +90,7 @@ const CarPublicDetailPage = () => {
       <p><strong>Price per day:</strong> ${car.rentalPrice}</p>
       <p><strong>Status:</strong> {car.rentalStatus}</p>
 
-      {/* ✅ Booking form ONLY if renter, car is bookable, and permission is true */}
+      {/* Booking section */}
       {isRenter && canBook && canRentCars && (
         <div className="booking-form">
           <h3>Request Rental</h3>
@@ -117,7 +121,6 @@ const CarPublicDetailPage = () => {
         </div>
       )}
 
-      {/* ✅ Message when renter but permission is revoked */}
       {isRenter && !canRentCars && (
         <p style={{ color: '#856404', backgroundColor: '#fff3cd', padding: '0.75rem', borderRadius: '4px', marginTop: '1rem' }}>
           You do not have permission to rent cars. Please contact the admin.
@@ -129,6 +132,26 @@ const CarPublicDetailPage = () => {
           <Link to="/login">Login</Link> to book this car.
         </p>
       )}
+
+      {/* ✅ Reviews section */}
+      <div className="reviews-section" style={{ marginTop: '2rem' }}>
+        <h3>Reviews</h3>
+        {reviews.length === 0 ? (
+          <p>No reviews yet.</p>
+        ) : (
+          <ul className="review-list" style={{ listStyle: 'none', padding: 0 }}>
+            {reviews.map((review) => (
+              <li key={review.id} className="review-item" style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #eee', borderRadius: '8px' }}>
+                <div>
+                  <strong>Rating:</strong> {'⭐'.repeat(review.rating)} ({review.rating}/5)
+                </div>
+                <p>{review.comment}</p>
+                <small style={{ color: '#888' }}>By renter #{review.renterId} (Booking #{review.bookingId})</small>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

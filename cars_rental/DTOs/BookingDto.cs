@@ -25,6 +25,7 @@ namespace cars_rental.DTOs
         public string CarTitle { get; set; }
         public string Status { get; set; }
         public decimal TotalPrice { get; set; }
+        public int carId { get; set; }
     }
 
 }
