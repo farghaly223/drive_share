@@ -12,7 +12,6 @@ const AdminDashboard = () => {
     { key: 'cars', label: 'Pending Car Posts', Component: PendingCarsList },
     { key: 'users', label: 'Manage User Roles', Component: UserRoleManager },
     { key: 'licenses', label: 'Review Licenses', Component: PendingLicensesList },
-    { key: 'permissions', label: 'Manage Permissions', Component: ManagePermissions },
   ];
   const ActiveComponent = tabs.find(t => t.key === activeTab)?.Component || (() => null);
   return (
