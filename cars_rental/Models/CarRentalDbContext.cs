@@ -20,7 +20,7 @@ public partial class CarRentalDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySql("server=localhost;database=car_rental_db;user=root;password=123",
+        => optionsBuilder.UseMySql("server=localhost;database=car_rental_db2;user=root;password=1234",
             Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.43-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
