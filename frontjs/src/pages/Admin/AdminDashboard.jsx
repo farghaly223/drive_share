@@ -3,7 +3,6 @@ import PendingOwnersList from './PendingOwnersList';
 import PendingCarsList from './PendingCarsList';
 import UserRoleManager from './UserRoleManager';
 import PendingLicensesList from './PendingLicensesList';
-import ManagePermissions from './ManagePermissions';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('owners');
